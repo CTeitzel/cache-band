@@ -4,9 +4,11 @@ import type { EngineInterface, PluginOptions, Register, SessionContextUsage } fr
 import type { AutoCompact, Preferences } from '../types'
 import { bidiFor, packForSurface, resolveLanguage } from './i18n'
 import {
-  BAR_CELLS,
+  DESKTOP_WIDTHS,
   HOUR_MS,
+  TERMINAL_WIDTHS,
   autoCompactLabel,
+  barCells,
   cacheLabel,
   cacheView,
   filledCells,
@@ -117,6 +119,18 @@ async function runCompact($: EngineInterface, isWorking: boolean, surface: strin
   } finally {
     await update($, isCompacting, () => false)
   }
+}
+
+// With CACHE_BAND_DEBUG=1, one transcript line per surface and width: what the bar was fitted to.
+let lastWidthNote = ''
+
+async function noteWidth($: EngineInterface, note: string): Promise<void> {
+  if (note === lastWidthNote || (await $.env.get('CACHE_BAND_DEBUG')) !== '1') {
+    return
+  }
+
+  lastWidthNote = note
+  $.ui.log(`cache-band debug: ${note}`)
 }
 
 export const register: Register = (on, options) => {
@@ -234,7 +248,21 @@ export const register: Register = (on, options) => {
     const now = await $.clock.now()
 
     const view = cacheView(reading, now, e.props.isWorking, ttlMs)
-    const filled = filledCells(reading?.stored ?? 0, view.state !== 'warm')
+    const countdownText = bidi(cacheLabel(view, pack))
+    const hitText = reading === null ? '–' : bidi(pack.percent(reading.hit))
+    const contextText = fill === null ? '–' : bidi(pack.percent(fill / 100))
+    const buttonLabel = bidi(compacting ? words.compacting : words.compact)
+    const texts = ['●', words.cache, countdownText, hitText, words.hit, '·', words.context, contextText, buttonLabel]
+    // The bar gives way so the row stays on one line: four gaps between the row's five parts, two
+    // in each group of three, one more beside the auto-compact label.
+    const cells = barCells(
+      e.props.bodyColumns,
+      autoCompactText === null ? texts : [...texts, autoCompactText],
+      autoCompactText === null ? 10 : 11,
+      e.surface === 'terminal' ? TERMINAL_WIDTHS : DESKTOP_WIDTHS,
+    )
+    const filled = filledCells(reading?.stored ?? 0, view.state !== 'warm', cells)
+    await noteWidth($, `surface=${e.surface} bodyColumns=${e.props.bodyColumns} bar=${cells}`)
     // Other mods share the band (cache-tax adds its keepwarm row there): ours on top, theirs beneath.
     const rest = await next(e)
 
@@ -245,17 +273,17 @@ export const register: Register = (on, options) => {
           <Text dimColor>{bidi(words.cache)}</Text>
           <Box key="countdown">
             <Text color={view.tone} bold>
-              {bidi(cacheLabel(view, pack))}
+              {countdownText}
             </Text>
           </Box>
         </Box>
         <Box key="bar" flexDirection={direction}>
           {filled > 0 && <Text color={view.tone}>{'■'.repeat(filled)}</Text>}
-          {filled < BAR_CELLS && <Text color="gray">{'□'.repeat(BAR_CELLS - filled)}</Text>}
+          {filled < cells && <Text color="gray">{'□'.repeat(cells - filled)}</Text>}
         </Box>
         <Box flexDirection={direction} columnGap={1}>
           <Box key="hit">
-            <Text bold>{reading === null ? '–' : bidi(pack.percent(reading.hit))}</Text>
+            <Text bold>{hitText}</Text>
           </Box>
           <Text dimColor>{bidi(words.hit)}</Text>
           <Text dimColor>·</Text>
@@ -266,7 +294,7 @@ export const register: Register = (on, options) => {
           </Box>
           <Text dimColor>{bidi(words.context)}</Text>
           <Box key="context">
-            <Text bold>{fill === null ? '–' : bidi(pack.percent(fill / 100))}</Text>
+            <Text bold>{contextText}</Text>
           </Box>
           {autoCompactText !== null && (
             <Box key="autoCompact">
@@ -276,7 +304,7 @@ export const register: Register = (on, options) => {
         </Box>
         <Button
           key="compact"
-          label={bidi(compacting ? words.compacting : words.compact)}
+          label={buttonLabel}
           dimColor={isBusy}
           onPress={press => void runCompact($, e.props.isWorking, press.surface)}
         />

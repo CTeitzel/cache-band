@@ -6,6 +6,7 @@ import type { LanguagePack } from './i18n'
 export const HOUR_MS = 60 * 60 * 1000
 export const FIVE_MINUTES_MS = 5 * 60 * 1000
 export const BAR_CELLS = 20
+export const MIN_BAR_CELLS = 6
 
 export type Tone = 'green' | 'yellow' | 'red' | 'gray'
 
@@ -71,13 +72,50 @@ export function cacheLabel(view: CacheView, pack: LanguagePack): string {
   return view.state === 'cold' ? pack.words.cold : pack.minutes(view.minutes)
 }
 
-/** How many of the bar's cells are filled. */
-export function filledCells(stored: number, isEmpty: boolean): number {
+/** How many of the bar's `cells` are filled. */
+export function filledCells(stored: number, isEmpty: boolean, cells: number = BAR_CELLS): number {
   if (isEmpty) {
     return 0
   }
 
-  return Math.round(Math.min(1, Math.max(0, stored)) * BAR_CELLS)
+  return Math.round(Math.min(1, Math.max(0, stored)) * cells)
+}
+
+/**
+ * What one piece of the row takes, in the band's cells. The terminal is exact; the Desktop app sets
+ * a proportional font in a monospace cell metric, so its figures are estimates from a screenshot
+ * (2026-10-11), on the generous side: a short bar beats a row that wraps.
+ */
+export type Widths = { char: number; square: number; emoji: number; buttonChrome: number; gap: number }
+
+export const TERMINAL_WIDTHS: Widths = { char: 1, square: 1, emoji: 2, buttonChrome: 4, gap: 1 }
+export const DESKTOP_WIDTHS: Widths = { char: 0.9, square: 1.4, emoji: 2, buttonChrome: 1.5, gap: 1 }
+
+const ZERO_WIDTH = /[\p{M}\p{Cf}]/u
+const WIDE =
+  /[ᄀ-ᅟ⺀-〾ぁ-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{20000}-\u{3FFFD}]/u
+
+/** Cells a text takes in a terminal: East Asian wide characters two, marks and format characters none. */
+export function textCells(text: string): number {
+  let cells = 0
+
+  for (const char of text) {
+    cells += ZERO_WIDTH.test(char) ? 0 : WIDE.test(char) ? 2 : 1
+  }
+
+  return cells
+}
+
+/**
+ * How many squares the bar gets so the row fits `available` cells: what the other pieces, the
+ * weather emoji, the button's frame and the `gaps` leave, between MIN_BAR_CELLS and BAR_CELLS.
+ */
+export function barCells(available: number, texts: readonly string[], gaps: number, widths: Widths): number {
+  const textWidth = texts.reduce((sum, text) => sum + textCells(text) * widths.char, 0)
+  const fixed = textWidth + widths.emoji + widths.buttonChrome + gaps * widths.gap + 1
+  const room = Math.floor((available - fixed) / widths.square)
+
+  return Math.max(MIN_BAR_CELLS, Math.min(BAR_CELLS, room))
 }
 
 /** null (no reading yet) counts as an empty window. */

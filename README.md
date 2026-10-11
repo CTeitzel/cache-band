@@ -16,7 +16,7 @@ came from it, how full the context is, and puts `/compact` one click away.
 | Part | Meaning | Display |
 |---|---|---|
 | `● cache 42m` | Time left on the prompt cache, counted from the last model response of the main conversation. While a turn runs it stays at the full lifetime. A keepwarm ping (e.g. from [cache-tax](https://github.com/karanb192/claude-code-mods)) that reads from the cache restarts it too. | Green above half the lifetime, yellow above a sixth, red below (31–60 / 11–30 / 0–10 minutes of an hour). `cold` once expired, `–` before the first response. |
-| Bar (20 cells) | How much of the last request sits in the cache: `(cache_read + cache_creation) ÷ input` | Colour of the countdown; grey and hollow when cold |
+| Bar (up to 20 cells) | How much of the last request sits in the cache: `(cache_read + cache_creation) ÷ input` | Colour of the countdown; grey and hollow when cold; shortens (down to 6) so the row stays on one line |
 | `93% hit` | Hit rate of the last request: `cache_read ÷ input` | Kept when cold — it describes the last request |
 | ☀️ / ⛅ / 🌧️ | Context weather | ☀️ below 40 %, ⛅ 40–69 %, 🌧️ from 70 % (time to `/compact`) |
 | `Context 9%` | Fill of the context window, the status line's figure | `–` before the first response and right after a compaction |
@@ -30,6 +30,9 @@ mirror the row in the Desktop app: it reads from the right, the bar fills from t
 button sits on the left, and each piece is set right-to-left, numbers and parentheses included.
 
 Other mods may draw into the same band; their rows appear beneath this one.
+
+The bar gives way when the band is narrow, so the row stays on one line. In the terminal the fit is
+exact; in the Desktop app, which sets a proportional font, it is estimated with some room to spare.
 
 ## Install
 
@@ -85,7 +88,7 @@ apart, so `auto` assumes one hour: **on an API key without `promptCacheTtl`, set
 | `hooks/model.ts` | pure maths: countdown, lifetime, bar, weather, auto-compact label |
 | `hooks/i18n.ts` | the 24 languages, their number locales, right-to-left, and how `auto` picks one |
 | `types/index.d.ts` | the `$.state` contract |
-| `tests/band.test.tsx` | 23 tests against the engine (`claude plugin test`) |
+| `tests/band.test.tsx` | 25 tests against the engine (`claude plugin test`) |
 | `.claude/CLAUDE.md` | notes for AI sessions working on the mod: invariants, where each figure comes from |
 | `docs/dev-log/` | development log (German) |
 
@@ -94,7 +97,9 @@ claude plugin validate .
 claude plugin test .
 ```
 
-CI runs both on every push. A strict type-check needs the declarations Claude Code writes into
+CI runs both on every push. To see what the bar is fitted to, start Claude Code with
+`CACHE_BAND_DEBUG=1`: the transcript gets one line per surface and width
+(`cache-band debug: surface=desktop bodyColumns=… bar=…`). A strict type-check needs the declarations Claude Code writes into
 `.claude-plugin/types/` when it loads the mod; load the checkout once (`--plugin-dir` or
 `CLAUDE_CODE_PLUGIN_DIRS`), then `npx -p typescript tsc -p .`.
 

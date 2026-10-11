@@ -45,6 +45,16 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
 
 ## Invariants — do not "simplify" these away
 
+- **Functions that take `$` are top-level declarations.** The engine reads the module's source and
+  refuses to load it when `$` is passed to a nested function (a closure inside `register`).
+- **The bar fits the row to `bodyColumns`** (`barCells` in `model.ts`): the other pieces' widths,
+  the weather emoji, the button's frame and the gaps are subtracted, the bar gets what is left,
+  6 to 20 squares. Terminal widths are exact (`textCells`: wide East Asian characters 2, marks and
+  format characters 0). Desktop widths (`DESKTOP_WIDTHS`) are estimates — a proportional font in a
+  monospace cell metric — calibrated from screenshots; recalibrate with `CACHE_BAND_DEBUG=1`, which
+  logs `surface`, `bodyColumns` and the bar it chose. When adding a piece to the row, add it to the
+  `texts` list and the gap count beside `barCells`.
+
 - **Share the band.** The `AbovePrompt` hook calls `next(e)` and draws `[ours, rest]` in a
   column. cache-tax adds its keepwarm row through `next(e)`; returning only our tree hides it
   (test "another mod's row stays in the band" fails).
@@ -91,7 +101,7 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
 
 - `claude plugin validate .` and `claude plugin validate .claude-plugin/marketplace.json` —
   CI fails on any warning (`⚠`), not only on errors.
-- `claude plugin test .` — `tests/*.test.tsx` against the engine (23 tests).
+- `claude plugin test .` — `tests/*.test.tsx` against the engine (25 tests).
 - Type-check (local only — CI has no declarations, they are Anthropic's and not committed):
   `tsc` is not installed; VS Code ships TypeScript at
   `%LOCALAPPDATA%\Programs\Microsoft VS Code\resources\app\extensions\node_modules\typescript\lib\typescript.js`.

@@ -3,7 +3,20 @@ import { describe, expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 
 import { LANGUAGES, STRINGS, bidiFor, languageOf, packFor, packForSurface, resolveLanguage, wordsFor } from '../hooks/i18n'
-import { FIVE_MINUTES_MS, HOUR_MS, cacheLabel, cacheView, filledCells, resolveTtl, weather } from '../hooks/model'
+import {
+  DESKTOP_WIDTHS,
+  FIVE_MINUTES_MS,
+  HOUR_MS,
+  MIN_BAR_CELLS,
+  TERMINAL_WIDTHS,
+  barCells,
+  cacheLabel,
+  cacheView,
+  filledCells,
+  resolveTtl,
+  textCells,
+  weather,
+} from '../hooks/model'
 
 const START = 1_000_000
 const SECOND = 1_000
@@ -141,6 +154,21 @@ describe('countdown', () => {
     expect(weather(39)).toBe('☀️')
     expect(weather(40)).toBe('⛅')
     expect(weather(70)).toBe('🌧️')
+  })
+
+  test('the bar gives way so the row fits, between six and twenty squares', () => {
+    expect(textCells('Context')).toBe(7)
+    expect(textCells('上下文')).toBe(6)
+    expect(textCells('⁧קר⁩')).toBe(2)
+    expect(textCells('สิบ')).toBe(2)
+
+    // 10 cells of text, emoji 2, button frame 4, 10 gaps, 1 spare: 27 fixed in the terminal.
+    const texts = ['abcde', 'fghij']
+    expect(barCells(120, texts, 10, TERMINAL_WIDTHS)).toBe(20)
+    expect(barCells(38, texts, 10, TERMINAL_WIDTHS)).toBe(11)
+    expect(barCells(20, texts, 10, TERMINAL_WIDTHS)).toBe(MIN_BAR_CELLS)
+    expect(barCells(38, texts, 10, DESKTOP_WIDTHS)).toBeLessThan(11)
+    expect(filledCells(0.5, false, 11)).toBe(6)
   })
 })
 
@@ -460,6 +488,19 @@ const KEEPWARM_ROW = {
     })
   },
 }
+
+test('in a narrow band the bar shortens and keeps its fill', async ($, on) => {
+  mock.clock(on, { now: START })
+  answerEngine(on)
+
+  await respond($)
+
+  // English, no auto-compact: ● cache 60m 93% hit · Context – Compact = 31 cells of text, emoji 2,
+  // frame 4, 10 gaps, 1 spare = 48 fixed; 60 columns leave 12 squares, all filled (99 % cached).
+  const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'terminal', ...BAND, props: { ...BAND.props, bodyColumns: 60 } })
+  expect((await ui.find({ key: 'bar' }))?.text).toBe('■'.repeat(12))
+  await ui.unmount()
+})
 
 test("another mod's row stays in the band, beneath ours", { plugins: [KEEPWARM_ROW] }, async ($, on) => {
   mock.clock(on, { now: START })
