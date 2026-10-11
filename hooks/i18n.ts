@@ -273,12 +273,18 @@ const LOCALES: Record<Language, string> = {
 
 const RIGHT_TO_LEFT: readonly Language[] = ['ar', 'he']
 
+/**
+ * The minute unit is the locale's narrow form, except where that reads oddly (author, 2026-10-11):
+ * Japanese narrow is a Latin `54m` (short: `54 分`), Greek narrow a bare `54 λ` (long: `54 λεπτά`).
+ */
+const MINUTE_DISPLAY: Partial<Record<Language, 'short' | 'long'>> = { ja: 'short', el: 'long' }
+
 /** One language's words, reading direction and number formats. */
 export type LanguagePack = {
   language: Language
   words: Strings
   isRtl: boolean
-  /** `42m`, `42 Min.`, `٤٢ د`: the locale's narrow minute unit. */
+  /** `42m`, `42 Min.`, `٤٢ د`, `42 分`: the locale's minute unit (MINUTE_DISPLAY). */
   minutes: (count: number) => string
   /** `93%`, `93 %`, `٩٣٪`: a share from 0 to 1, whole percent. */
   percent: (fraction: number) => string
@@ -295,7 +301,11 @@ export function packFor(language: string): LanguagePack {
   }
 
   const locale = LOCALES[known]
-  const minutes = new Intl.NumberFormat(locale, { style: 'unit', unit: 'minute', unitDisplay: 'narrow' })
+  const minutes = new Intl.NumberFormat(locale, {
+    style: 'unit',
+    unit: 'minute',
+    unitDisplay: MINUTE_DISPLAY[known] ?? 'narrow',
+  })
   const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 })
   const pack: LanguagePack = {
     language: known,

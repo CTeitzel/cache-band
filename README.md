@@ -25,7 +25,7 @@ came from it, how full the context is, and puts `/compact` one click away.
 
 Every word is translated, `Compact` and `Auto-Compact` included (German: `komprimieren`,
 `Auto-Komprimierung`). Numbers follow the language's locale: `42m` and `93%` in English,
-`42 Min.` and `93 %` in German, Arabic-Indic digits (`٤٢ د`, `٩٣٪`) in Arabic. Arabic and Hebrew
+`42 Min.` and `93 %` in German, `42 分` in Japanese, Arabic-Indic digits (`٤٢ د`, `٩٣٪`) in Arabic. Arabic and Hebrew
 mirror the row in the Desktop app: it reads from the right, the bar fills from the right, the
 button sits on the left, and each piece is set right-to-left, numbers and parentheses included.
 

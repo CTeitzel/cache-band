@@ -220,6 +220,8 @@ describe('languages', () => {
     expect(packFor('de').minutes(60)).toBe('60 Min.')
     expect(packFor('ar').minutes(60)).toBe('٦٠ د')
     expect(packFor('he').minutes(42)).toBe('42 דק׳')
+    expect(packFor('ja').minutes(54)).toMatch(/^54.分$/)
+    expect(packFor('el').minutes(54)).toMatch(/^54.λεπτά$/)
     expect(packFor('en').percent(0.93)).toBe('93%')
     expect(packFor('de').percent(0.93)).toMatch(/^93\s%$/)
     expect(packFor('ar').percent(0.93)).toMatch(/^٩٣٪/)
@@ -535,7 +537,7 @@ test('debug: /cache-band-language switches the band for the session', async ($, 
   expect(unknown.text).toContain('unknown language "xx"')
 
   const switched = await $.command.run({ command: 'cache-band-language', args: 'ja' } as never)
-  expect(switched.text).toBe('cache-band: language ja for this session')
+  expect(switched.text).toBe('language ja for this session')
 
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect(await ui.find({ type: 'Text', text: 'コンテキスト' })).toBeDefined()

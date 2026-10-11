@@ -84,6 +84,8 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
 - **Every word is translated, `Compact` and `Auto-Compact` too** (`words.compact`,
   `words.autoCompact`) — the author's decision on 2026-10-11, overturning an earlier rule that kept
   them English as the command's name.
+- **Minute units: the locale's narrow form, except `MINUTE_DISPLAY`** (`ja` short `54 分`, `el` long
+  `54 λεπτά`): their narrow forms (`54m`, `54 λ`) read oddly, checked on screenshots 2026-10-11.
 - **Numbers go through the language pack** (`packFor` / `packForSurface` in `i18n.ts`): minutes
   as the locale's narrow unit (`42m`, `42 Min.`, `٤٢ د`), percentages with the locale's sign and
   digits. Locales as in the dashboard (`ar-EG` → Arabic-Indic digits). Never format `${n}m` or

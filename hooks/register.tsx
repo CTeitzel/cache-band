@@ -162,12 +162,13 @@ export const register: Register = (on, options) => {
     const code = e.args.trim()
 
     if (!(LANGUAGES as readonly string[]).includes(code)) {
-      return { text: `cache-band: unknown language "${code}"; one of ${LANGUAGES.join(', ')}` }
+      // Claude Code already names the plugin before a command's output: no own prefix.
+      return { text: `unknown language "${code}"; one of ${LANGUAGES.join(', ')}` }
     }
 
     await update($, preferences, current => ({ ...current, language: code }))
 
-    return { text: `cache-band: language ${code} for this session` }
+    return { text: `language ${code} for this session` }
   })
 
   on('classic.PostModelSwitch', async ($, e, next) => {
