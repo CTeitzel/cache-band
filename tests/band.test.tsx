@@ -351,7 +351,8 @@ test('the language option draws the band in German', { options: { language: 'de'
 
   const fresh = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await fresh.find({ key: 'countdown' }))?.text).toBe('60 Min.')
-  expect((await fresh.find({ key: 'compact' }))?.props.label).toBe('Komprimieren')
+  expect((await fresh.find({ key: 'compact' }))?.props.label).toBe('komprimieren')
+  expect(await fresh.find({ type: 'Text', text: 'Cache' })).toBeDefined()
   expect((await fresh.find({ key: 'row' }))?.props.flexDirection).toBe('row')
   await fresh.unmount()
 

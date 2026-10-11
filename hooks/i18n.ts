@@ -31,8 +31,8 @@ export const STRINGS: Record<Language, Strings> = {
     failed: r => `Compact failed: ${r}`,
   },
   de: {
-    cache: 'cache', cold: 'kalt', hit: 'hit', context: 'Kontext', on: 'an', off: 'aus',
-    compact: 'Komprimieren', autoCompact: 'Auto-Komprimierung',
+    cache: 'Cache', cold: 'kalt', hit: 'hit', context: 'Kontext', on: 'an', off: 'aus',
+    compact: 'komprimieren', autoCompact: 'Auto-Komprimierung',
     compacting: 'Komprimiere…',
     busy: 'Komprimieren geht erst, wenn der laufende Turn fertig ist.',
     failed: r => `Komprimieren fehlgeschlagen: ${r}`,
