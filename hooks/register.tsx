@@ -75,27 +75,40 @@ async function forgetWindow($: EngineInterface): Promise<void> {
   await update($, context, () => null)
 }
 
+/**
+ * Runs `/compact` the way the person typing it does (`$.command.run`): queued for the engine, its
+ * progress and result in the transcript. `$.session.compact()` from the press left no compaction
+ * behind in the Desktop app (2026-10-11).
+ */
 async function runCompact($: EngineInterface, isWorking: boolean): Promise<void> {
+  const words = wordsFor((await read($, preferences)).language)
+
+  if (isWorking) {
+    $.ui.toast(words.busy)
+
+    return
+  }
+
   if (await read($, isCompacting)) {
     return
   }
 
   await update($, isCompacting, () => true)
-  const words = wordsFor((await read($, preferences)).language)
-  $.ui.toast(words.compacting)
 
   try {
-    const result = await $.session.compact()
+    await $.command.run({ command: 'compact' })
+    // A compaction leaves the window without a reading until the next response; a vetoed one keeps
+    // its fill. Whose session.compact hook ran is the engine's business: read the result instead.
+    const { context: live } = await $.session.usage()
+    await storeFill($, live)
 
-    if (result.skip !== undefined) {
-      $.ui.toast(words.skipped(result.skip))
-    } else {
-      // The engine skips this plugin's own session.compact hook for its own call: reset here.
-      await forgetWindow($)
+    if (live.percent === undefined) {
+      await update($, cache, () => null)
     }
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
-    $.ui.toast(isWorking ? words.busy : words.failed(reason))
+    const message = words.failed(error instanceof Error ? error.message : String(error))
+    $.ui.toast(message)
+    $.ui.log(`cache-band: ${message}`)
   } finally {
     await update($, isCompacting, () => false)
   }
@@ -207,7 +220,8 @@ export const register: Register = (on, options) => {
     const reading = await read($, cache)
     const fill = await read($, context)
     const autoCompactText = autoCompactLabel(await read($, autoCompact), words)
-    const isBusy = e.props.isWorking || (await read($, isCompacting))
+    const compacting = await read($, isCompacting)
+    const isBusy = e.props.isWorking || compacting
     const now = await $.clock.now()
 
     const view = cacheView(reading, now, e.props.isWorking, ttlMs)
@@ -250,7 +264,12 @@ export const register: Register = (on, options) => {
             </Box>
           )}
         </Box>
-        <Button key="compact" label="Compact" dimColor={isBusy} onPress={() => void runCompact($, e.props.isWorking)} />
+        <Button
+          key="compact"
+          label={compacting ? words.compacting : 'Compact'}
+          dimColor={isBusy}
+          onPress={() => void runCompact($, e.props.isWorking)}
+        />
       </Box>
     )
 

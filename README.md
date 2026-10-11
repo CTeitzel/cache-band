@@ -21,7 +21,7 @@ came from it, how full the context is, and puts `/compact` one click away.
 | ☀️ / ⛅ / 🌧️ | Context weather | ☀️ below 40 %, ⛅ 40–69 %, 🌧️ from 70 % (time to `/compact`) |
 | `Context 9%` | Fill of the context window, the status line's figure | `–` before the first response and right after a compaction |
 | `(Auto-Compact 97%)` | Where auto-compaction triggers, as a share of the window | `(Auto-Compact off)` when disabled |
-| `[Compact]` | Runs `/compact` at once | Dimmed while a turn runs; a press then says it has to wait |
+| `[Compact]` | Runs `/compact` as if typed; its progress and result show in the transcript | Reads `Compacting…` until done; dimmed while a turn runs, a press then says it has to wait; a failure is named in the transcript |
 
 Other mods may draw into the same band; their rows appear beneath this one.
 
@@ -78,7 +78,7 @@ apart, so `auto` assumes one hour: **on an API key without `promptCacheTtl`, set
 | `hooks/model.ts` | pure maths: countdown, lifetime, bar, weather, auto-compact label |
 | `hooks/i18n.ts` | the 24 languages and how `auto` picks one |
 | `types/index.d.ts` | the `$.state` contract |
-| `tests/band.test.tsx` | 16 tests against the engine (`claude plugin test`) |
+| `tests/band.test.tsx` | 17 tests against the engine (`claude plugin test`) |
 | `.claude/CLAUDE.md` | notes for AI sessions working on the mod: invariants, where each figure comes from |
 | `docs/dev-log/` | development log (German) |
 

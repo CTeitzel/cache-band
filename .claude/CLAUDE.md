@@ -38,7 +38,7 @@ Do not also install it from the marketplace there: it would load twice.
 | context % | `session.measure` (pushed after each main turn) and `$.session.usage()` at `session.start` |
 | auto-compact % | `$.session.usage({ breakdown: 'summary' })` at `session.start`, `classic.PostModelSwitch`, `classic.ConfigChange`, `config.set {key: 'autoCompact'}` — not per turn (it counts the whole window locally) |
 | language, cache lifetime | `state.preferences`, from the options over `$.settings.read()` (`language`, `promptCacheTtl`) and `$.env.get` (`CLAUDE_CODE_PROMPT_CACHE_TTL`, `LC_ALL`, `LANG`), at `session.start` and `classic.ConfigChange`; an option change reloads the module |
-| reset to `–` | `session.compact` (not `precompute`), `/clear` (`session.end` reason `clear`), and `runCompact` itself |
+| reset to `–` | `session.compact` (not `precompute`), `/clear` (`session.end` reason `clear`), and `runCompact`, which re-reads `$.session.usage()` after the command: no `percent` means compacted |
 
 Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red below), which is
 31–60 / 11–30 / 0–10 minutes for one hour — the author's original specification.
@@ -48,15 +48,22 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
 - **Share the band.** The `AbovePrompt` hook calls `next(e)` and draws `[ours, rest]` in a
   column. cache-tax adds its keepwarm row through `next(e)`; returning only our tree hides it
   (test "another mod's row stays in the band" fails).
-- **`runCompact` resets the band itself.** The engine skips a plugin's own `session.compact`
-  hook for that plugin's own `$.session.compact()` call (recursion skip). Removing the reset
-  there fails the compaction test.
+- **The button runs `/compact` through `$.command.run`, not `$.session.compact()`.** Pressed in
+  the Desktop app, `$.session.compact()` left no compaction behind (2026-10-11; the cause was not
+  pinned down, the test kit cannot tell — it compacts there). `$.command.run` is the typed-command
+  path: queued for the engine, its lines in the transcript.
+- **`runCompact` decides the reset from the usage, not from hooks.** The engine skips a plugin's
+  own hooks for calls it caused (recursion skip: our `session.compact` hook did not run for our own
+  `$.session.compact()`), so after the command it re-reads `$.session.usage()`: a compaction leaves
+  no `percent` until the next response, a vetoed one keeps it.
 - **`Text` takes no `key`.** Only `Box` and `Button` do; tests find values through keyed Boxes
   (`countdown`, `bar`, `hit`, `weather`, `context`, `autoCompact`).
-- **Op events answer `{ value }`.** `model.fork`, `session.usage`, `settings.read`, `ui.toast`
+- **Op events answer `{ value }`.** `model.fork`, `session.usage`, `settings.read`, `ui.toast`, `ui.log`
   hooks see and return `{ value } | { deny }`, not the bare value — in the module and in stubs.
-- **No `disabled` on `Button`.** "Greyed out" is `dimColor`; the press still runs and
-  `runCompact` explains why it failed (`isWorking` from the drawing picks the message).
+- **No `disabled` on `Button`.** "Greyed out" is `dimColor`; the press still runs: during a turn
+  (`isWorking` from the drawing) `runCompact` only toasts that it has to wait; a failure is a toast
+  and a `$.ui.log` line in the transcript. While it runs the label reads `Compacting…` (not
+  covered by a test: the kit does not redraw mid-press).
 - **`Compact` / `Auto-Compact` are not translated** — they name the `/compact` command.
 - **The language list follows the author's Grok Depot dashboard** (its 22 languages, incl. `zh-TW`
   and its Chinese rule Hant/TW/HK/MO → `zh-TW`) plus `sv` and `cs`: 24. A new language goes into
@@ -68,7 +75,7 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
 
 - `claude plugin validate .` and `claude plugin validate .claude-plugin/marketplace.json` —
   CI fails on any warning (`⚠`), not only on errors.
-- `claude plugin test .` — `tests/*.test.tsx` against the engine (16 tests).
+- `claude plugin test .` — `tests/*.test.tsx` against the engine (17 tests).
 - Type-check (local only — CI has no declarations, they are Anthropic's and not committed):
   `tsc` is not installed; VS Code ships TypeScript at
   `%LOCALAPPDATA%\Programs\Microsoft VS Code\resources\app\extensions\node_modules\typescript\lib\typescript.js`.
@@ -84,7 +91,8 @@ author's decision (2026-10-11): do not pin it; GitHub moves the alias to Ubuntu 
 Test stubs every engine test needs beneath the plugin (`answerEngine`): `mock.clock`,
 `mock.env`, `settings.read`, an `AbovePrompt` `ui.render` answer (because our hook calls
 `next`), `turn.step`, `session.start/end/measure`; `answerUsage` where the context figures
-matter. Options for the plugin under test: `test(name, { options: { language: 'de' } }, body)`.
+matter (its `percent` getter returning `undefined` stands for "just compacted"); a
+`command.run` hook on `{ command: 'compact' }` stands for the engine's `/compact`. Options for the plugin under test: `test(name, { options: { language: 'de' } }, body)`.
 
 ## Deploying a change
 

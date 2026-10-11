@@ -54,14 +54,21 @@ function answerEngine(on: On, settings: Record<string, unknown> = {}, env: Recor
   on('session.measure', (_, e) => ({ changed: e.changed }))
 }
 
-/** `$.session.usage()` at 9 % of a 1M window; the breakdown reads `autoCompact()` each time. */
-function answerUsage(on: On, autoCompact: () => { isAutoCompactEnabled: boolean; autoCompactThreshold?: number }): void {
+/**
+ * `$.session.usage()` over a 1M window: the fill `percent()` reads (9 % unless given; undefined, as
+ * right after a compaction), the breakdown `autoCompact()` reads, each time it is asked.
+ */
+function answerUsage(
+  on: On,
+  autoCompact: () => { isAutoCompactEnabled: boolean; autoCompactThreshold?: number },
+  percent: () => number | undefined = () => 9,
+): void {
   on('session.usage', (_, args) => {
     const breakdown = args.breakdown === undefined ? undefined : autoCompact()
+    const fill = percent()
+    const context = fill === undefined ? { window: 1_000_000, breakdown } : { tokens: fill * 10_000, window: 1_000_000, percent: fill, breakdown }
 
-    return {
-      value: { startedAt: 0, rateLimits: [], context: { tokens: 90_000, window: 1_000_000, percent: 9, breakdown } },
-    } as never
+    return { value: { startedAt: 0, rateLimits: [], context } } as never
   })
 }
 
@@ -147,7 +154,6 @@ describe('languages', () => {
       for (const word of [words.cache, words.cold, words.hit, words.context, words.on, words.off, words.compacting, words.busy]) {
         expect(word.trim().length).toBeGreaterThan(0)
       }
-      expect(words.skipped('REASON')).toContain('REASON')
       expect(words.failed('REASON')).toContain('REASON')
     }
   })
@@ -229,13 +235,16 @@ test('a keepwarm ping that reads the cache restarts the countdown', { plugins: [
 test('band follows a response, its expiry and a compaction', async ($, on) => {
   const clock = mock.clock(on, { now: START })
   let compactions = 0
+  let fill: number | undefined = 9
 
   answerEngine(on)
-  answerUsage(on, () => ({ isAutoCompactEnabled: true, autoCompactThreshold: 967_000 }))
-  on('session.compact', (_, e) => {
+  answerUsage(on, () => ({ isAutoCompactEnabled: true, autoCompactThreshold: 967_000 }), () => fill)
+  // `/compact` as typed: the engine compacts, and the window has no reading until the next response.
+  on('command.run', { command: 'compact' }, async () => {
     compactions += 1
+    fill = undefined
 
-    return { messages: [{ role: 'user' as const, text: 'Summary', toolUses: [] }], trigger: e.trigger }
+    return { text: 'Compacted' }
   })
   on('ui.toast', () => ({ value: undefined }))
 
@@ -276,9 +285,35 @@ test('band follows a response, its expiry and a compaction', async ($, on) => {
 
   await cold.press({ key: 'compact' })
   expect(compactions).toBe(1)
+  expect((await cold.find({ key: 'compact' }))?.props.label).toBe('Compact')
   expect((await cold.find({ key: 'countdown' }))?.text).toBe('–')
   expect((await cold.find({ key: 'context' }))?.text).toBe('–')
   await cold.unmount()
+})
+
+test('Compact during a turn waits: a hint, no command', async ($, on) => {
+  mock.clock(on, { now: START })
+  const toasts: string[] = []
+  let compactions = 0
+
+  answerEngine(on)
+  on('ui.toast', (_, e) => {
+    toasts.push(e.text)
+
+    return { value: undefined }
+  })
+  on('command.run', { command: 'compact' }, () => {
+    compactions += 1
+
+    return { text: 'Compacted' }
+  })
+
+  const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND, props: { ...BAND.props, isWorking: true } })
+  await ui.press({ key: 'compact' })
+  await ui.unmount()
+
+  expect(compactions).toBe(0)
+  expect(toasts).toEqual([STRINGS.en.busy])
 })
 
 test('the language option draws the band in German', { options: { language: 'de' } }, async ($, on) => {
@@ -369,9 +404,10 @@ test('/clear empties the band', async ($, on) => {
   await ui.unmount()
 })
 
-test('a failed compaction between turns names its reason', async ($, on) => {
+test('a failed compaction names its reason, in a toast and in the transcript', async ($, on) => {
   mock.clock(on, { now: START })
   const toasts: string[] = []
+  const lines: string[] = []
 
   answerEngine(on)
   on('ui.toast', (_, e) => {
@@ -379,16 +415,22 @@ test('a failed compaction between turns names its reason', async ($, on) => {
 
     return { value: undefined }
   })
-  on('session.compact', () => {
+  on('ui.log', (_, e) => {
+    lines.push(e.text)
+
+    return { value: undefined }
+  })
+  on('command.run', { command: 'compact' }, () => {
     throw new Error('overloaded')
   })
 
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   await ui.press({ key: 'compact' })
+  expect((await ui.find({ key: 'compact' }))?.props.label).toBe('Compact')
   await ui.unmount()
 
   expect(toasts.some(text => text.startsWith('Compact failed:'))).toBe(true)
-  expect(toasts.some(text => text.includes('running turn'))).toBe(false)
+  expect(lines.some(text => text.startsWith('cache-band: Compact failed:'))).toBe(true)
 })
 
 test('turning auto-compact off in /config shows at once', async ($, on) => {

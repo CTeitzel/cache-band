@@ -1,6 +1,6 @@
 {
   "name": "cache-band",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 24 languages.",
   "author": {
     "name": "Dr. Christian Teitzel",
