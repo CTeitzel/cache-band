@@ -142,17 +142,27 @@ others should receive. Add a dated entry to `docs/dev-log/`.
 
 Releases are GitHub releases with a `vX.Y.Z` tag: `v0.3.0` first, `v0.6.2` latest (both 2026-10-11).
 
+Everything the release needs is committed **before** the tag, so the tag lands on the newest
+commit and `main` does not run ahead of it with documentation (as it did after `v0.6.2`, whose
+dev-log entry came after the tag). A published tag is never moved.
+
 1. Bump `version` in `.claude-plugin/plugin.json` (semver: new options or languages → minor,
    fixes → patch). Marketplace installs follow `main`, and the version string is what makes
    `claude plugin update` hand them the new code — without a bump they keep the old one.
-2. Update README, this file and `docs/dev-log/` for what changed.
-3. Commit, push, and wait for a green CI run on that commit (no warnings).
-4. Create the release on exactly that commit, English notes (what the band shows, what is new,
+2. Update README, this file and `docs/dev-log/` for what changed — **including the release
+   itself**: a dev-log section for `vX.Y.Z` with its URL
+   (`https://github.com/CTeitzel/cache-band/releases/tag/vX.Y.Z`, known before it exists), what the
+   notes say, and "latest release" in this file. Write the release notes now too.
+3. Run the final check before tagging (all committed and pushed, CI green without warnings, md
+   files current) and record it in the same dev-log section.
+4. Commit, push, and wait for a green CI run on that commit (no warnings). This is the release
+   commit; nothing is committed between it and the tag.
+5. Create the release on exactly that commit, English notes (what the band shows, what is new,
    install, checks), marked latest:
    `gh release create vX.Y.Z --target <sha> --title "cache-band X.Y.Z" --notes-file <notes.md> --latest`
-5. Check it: `gh release view vX.Y.Z` (not a draft, not a prerelease) and
-   `gh api repos/CTeitzel/cache-band/releases/latest`.
-6. Add the release to the dev-log.
+6. Check it without committing: `gh release view vX.Y.Z` (not a draft, not a prerelease),
+   `gh api repos/CTeitzel/cache-band/releases/latest`, and `git rev-list --count vX.Y.Z..main`
+   is `0`. If something has to be fixed afterwards, it goes into the next release — the tag stays.
 
 ## Neighbours
 
