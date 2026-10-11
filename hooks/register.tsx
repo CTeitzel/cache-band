@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, PluginOptions, Register, SessionContextUsage } from 'claude-code'
 
 import type { AutoCompact, Preferences } from '../types'
-import { bidiFor, packForSurface, resolveLanguage } from './i18n'
+import { LANGUAGES, bidiFor, packForSurface, resolveLanguage } from './i18n'
 import {
   DESKTOP_WIDTHS,
   HOUR_MS,
@@ -146,7 +146,28 @@ export const register: Register = (on, options) => {
     }
     await measureAutoCompact($)
 
+    if ((await $.env.get('CACHE_BAND_DEBUG')) === '1') {
+      await $.command.register({
+        name: 'cache-band-language',
+        description: 'cache-band debug: draw the band in another language for this session',
+        argumentHint: '<code>',
+      })
+    }
+
     return result
+  })
+
+  // Debug only (registered with CACHE_BAND_DEBUG=1): try a language without touching the settings.
+  on('command.run', { command: 'cache-band-language' }, async ($, e) => {
+    const code = e.args.trim()
+
+    if (!(LANGUAGES as readonly string[]).includes(code)) {
+      return { text: `cache-band: unknown language "${code}"; one of ${LANGUAGES.join(', ')}` }
+    }
+
+    await update($, preferences, current => ({ ...current, language: code }))
+
+    return { text: `cache-band: language ${code} for this session` }
   })
 
   on('classic.PostModelSwitch', async ($, e, next) => {
@@ -262,7 +283,7 @@ export const register: Register = (on, options) => {
       e.surface === 'terminal' ? TERMINAL_WIDTHS : DESKTOP_WIDTHS,
     )
     const filled = filledCells(reading?.stored ?? 0, view.state !== 'warm', cells)
-    await noteWidth($, `surface=${e.surface} bodyColumns=${e.props.bodyColumns} bar=${cells}`)
+    await noteWidth($, `language=${pack.language} surface=${e.surface} bodyColumns=${e.props.bodyColumns} bar=${cells}`)
     // Other mods share the band (cache-tax adds its keepwarm row there): ours on top, theirs beneath.
     const rest = await next(e)
 

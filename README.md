@@ -88,7 +88,7 @@ apart, so `auto` assumes one hour: **on an API key without `promptCacheTtl`, set
 | `hooks/model.ts` | pure maths: countdown, lifetime, bar, weather, auto-compact label |
 | `hooks/i18n.ts` | the 24 languages, their number locales, right-to-left, and how `auto` picks one |
 | `types/index.d.ts` | the `$.state` contract |
-| `tests/band.test.tsx` | 25 tests against the engine (`claude plugin test`) |
+| `tests/band.test.tsx` | 27 tests against the engine (`claude plugin test`) |
 | `.claude/CLAUDE.md` | notes for AI sessions working on the mod: invariants, where each figure comes from |
 | `docs/dev-log/` | development log (German) |
 
@@ -99,7 +99,9 @@ claude plugin test .
 
 CI runs both on every push. To see what the bar is fitted to, start Claude Code with
 `CACHE_BAND_DEBUG=1`: the transcript gets one line per surface and width
-(`cache-band debug: surface=desktop bodyColumns=… bar=…`). A strict type-check needs the declarations Claude Code writes into
+(`cache-band debug: language=de surface=desktop bodyColumns=… bar=…`), and the command
+`/cache-band-language <code>` draws the band in another language for that session, without
+touching the settings. A strict type-check needs the declarations Claude Code writes into
 `.claude-plugin/types/` when it loads the mod; load the checkout once (`--plugin-dir` or
 `CLAUDE_CODE_PLUGIN_DIRS`), then `npx -p typescript tsc -p .`.
 

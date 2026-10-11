@@ -92,11 +92,13 @@ export type Widths = { char: number; square: number; emoji: number; buttonChrome
 export const TERMINAL_WIDTHS: Widths = { char: 1, square: 1, emoji: 2, buttonChrome: 4, gap: 1 }
 export const DESKTOP_WIDTHS: Widths = { char: 0.9, square: 1.4, emoji: 2, buttonChrome: 1.5, gap: 1 }
 
-const ZERO_WIDTH = /[\p{M}\p{Cf}]/u
+// Marks that sit on another character (Mn, Me) and format characters take no cell; spacing marks
+// (Mc, such as the Devanagari vowel sign ा) take one.
+const ZERO_WIDTH = /[\p{Mn}\p{Me}\p{Cf}]/u
 const WIDE =
-  /[ᄀ-ᅟ⺀-〾ぁ-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{20000}-\u{3FFFD}]/u
+  /[\u1100-\u115F\u2E80-\u303E\u3041-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60\uFFE0-\uFFE6\u{20000}-\u{3FFFD}]/u
 
-/** Cells a text takes in a terminal: East Asian wide characters two, marks and format characters none. */
+/** Cells a text takes in a terminal: East Asian wide characters two, ZERO_WIDTH none, the rest one. */
 export function textCells(text: string): number {
   let cells = 0
 

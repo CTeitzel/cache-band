@@ -159,8 +159,10 @@ describe('countdown', () => {
   test('the bar gives way so the row fits, between six and twenty squares', () => {
     expect(textCells('Context')).toBe(7)
     expect(textCells('上下文')).toBe(6)
-    expect(textCells('⁧קר⁩')).toBe(2)
+    expect(textCells('\u2067קר\u2069')).toBe(2)
     expect(textCells('สิบ')).toBe(2)
+    // क plus the spacing vowel sign ा: two cells, not one.
+    expect(textCells('का')).toBe(2)
 
     // 10 cells of text, emoji 2, button frame 4, 10 gaps, 1 spare: 27 fixed in the terminal.
     const texts = ['abcde', 'fghij']
@@ -512,6 +514,47 @@ test("another mod's row stays in the band, beneath ours", { plugins: [KEEPWARM_R
     expect(await ui.find({ type: 'Text', text: /keepwarm 3h00m left/ })).toBeDefined()
     await ui.unmount()
   }
+})
+
+test('debug: /cache-band-language switches the band for the session', async ($, on) => {
+  mock.clock(on, { now: START })
+  const registered: string[] = []
+
+  answerEngine(on, {}, { CACHE_BAND_DEBUG: '1' })
+  on('ui.log', () => ({ value: undefined }))
+  on('command.register', (_, e) => {
+    registered.push(e.name)
+
+    return { value: { command: e.name } } as never
+  })
+
+  await start($)
+  expect(registered).toEqual(['cache-band-language'])
+
+  const unknown = await $.command.run({ command: 'cache-band-language', args: 'xx' } as never)
+  expect(unknown.text).toContain('unknown language "xx"')
+
+  const switched = await $.command.run({ command: 'cache-band-language', args: 'ja' } as never)
+  expect(switched.text).toBe('cache-band: language ja for this session')
+
+  const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
+  expect(await ui.find({ type: 'Text', text: 'コンテキスト' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('without CACHE_BAND_DEBUG there is no debug command', async ($, on) => {
+  mock.clock(on, { now: START })
+  const registered: string[] = []
+
+  answerEngine(on)
+  on('command.register', (_, e) => {
+    registered.push(e.name)
+
+    return { value: { command: e.name } } as never
+  })
+
+  await start($)
+  expect(registered).toEqual([])
 })
 
 test('/clear empties the band', async ($, on) => {
