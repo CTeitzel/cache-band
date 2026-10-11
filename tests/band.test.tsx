@@ -2,7 +2,7 @@ import type { On } from 'claude-code'
 import { describe, expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 
-import { LANGUAGES, STRINGS, languageOf, packFor, packForSurface, resolveLanguage, wordsFor } from '../hooks/i18n'
+import { LANGUAGES, STRINGS, bidiFor, languageOf, packFor, packForSurface, resolveLanguage, wordsFor } from '../hooks/i18n'
 import { FIVE_MINUTES_MS, HOUR_MS, cacheLabel, cacheView, filledCells, resolveTtl, weather } from '../hooks/model'
 
 const START = 1_000_000
@@ -151,7 +151,7 @@ describe('languages', () => {
     for (const language of LANGUAGES) {
       const words = STRINGS[language]
 
-      for (const word of [words.cache, words.cold, words.hit, words.context, words.on, words.off, words.compacting, words.busy]) {
+      for (const word of [words.cache, words.cold, words.hit, words.context, words.on, words.off, words.compact, words.autoCompact, words.compacting, words.busy]) {
         expect(word.trim().length).toBeGreaterThan(0)
       }
       expect(words.failed('REASON')).toContain('REASON')
@@ -202,6 +202,12 @@ describe('languages', () => {
     expect(packForSurface('he', 'terminal', false).language).toBe('en')
     expect(packForSurface('ar', 'terminal', true).language).toBe('ar')
     expect(packForSurface('de', 'terminal', false).language).toBe('de')
+  })
+
+  test('right-to-left pieces are isolated (RLI … PDI) on web surfaces, never in the terminal', () => {
+    expect(bidiFor(packFor('ar'), 'desktop')('x')).toBe('\u2067x\u2069')
+    expect(bidiFor(packFor('he'), 'terminal')('x')).toBe('x')
+    expect(bidiFor(packFor('en'), 'desktop')('x')).toBe('x')
   })
 })
 
@@ -345,6 +351,7 @@ test('the language option draws the band in German', { options: { language: 'de'
 
   const fresh = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await fresh.find({ key: 'countdown' }))?.text).toBe('60 Min.')
+  expect((await fresh.find({ key: 'compact' }))?.props.label).toBe('Kompaktieren')
   expect((await fresh.find({ key: 'row' }))?.props.flexDirection).toBe('row')
   await fresh.unmount()
 
@@ -353,7 +360,7 @@ test('the language option draws the band in German', { options: { language: 'de'
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await ui.find({ key: 'countdown' }))?.text).toBe('kalt')
   expect(await ui.find({ type: 'Text', text: 'Kontext' })).toBeDefined()
-  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Compact aus)')
+  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Kompaktierung aus)')
   await ui.unmount()
 })
 
@@ -389,6 +396,7 @@ test('a five-minute cache from the settings counts down from 5m', async ($, on) 
 test('Arabic mirrors the band on the desktop, with Arabic-Indic digits', { options: { language: 'ar' } }, async ($, on) => {
   mock.clock(on, { now: START })
   answerEngine(on)
+  answerUsage(on, () => ({ isAutoCompactEnabled: true, autoCompactThreshold: 967_000 }))
 
   await start($)
   await respond($)
@@ -396,8 +404,10 @@ test('Arabic mirrors the band on the desktop, with Arabic-Indic digits', { optio
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await ui.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
   expect((await ui.find({ key: 'bar' }))?.props.flexDirection).toBe('row-reverse')
-  expect((await ui.find({ key: 'countdown' }))?.text).toBe('٦٠ د')
-  expect((await ui.find({ key: 'hit' }))?.text).toMatch(/^٩٣٪/)
+  expect((await ui.find({ key: 'countdown' }))?.text).toBe('\u2067٦٠ د\u2069')
+  expect((await ui.find({ key: 'hit' }))?.text).toMatch(/^\u2067٩٣٪/)
+  expect((await ui.find({ key: 'autoCompact' }))?.text).toMatch(/^\u2067\(ضغط تلقائي ٩٧٪/)
+  expect((await ui.find({ key: 'compact' }))?.props.label).toBe('\u2067ضغط\u2069')
   expect(await ui.find({ type: 'Text', text: 'السياق' })).toBeDefined()
   await ui.unmount()
 })
@@ -417,7 +427,7 @@ test('Hebrew in the terminal falls back to English', { options: { language: 'he'
 
   const desktop = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await desktop.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
-  expect((await desktop.find({ key: 'countdown' }))?.text).toBe('60 דק׳')
+  expect((await desktop.find({ key: 'countdown' }))?.text).toBe('\u206760 דק׳\u2069')
   await desktop.unmount()
 })
 
@@ -429,7 +439,7 @@ test('rtlInTerminal draws Hebrew right-to-left in the terminal too', { options: 
 
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'terminal', ...BAND })
   expect((await ui.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
-  expect(await ui.find({ type: 'Text', text: 'הקשר' })).toBeDefined()
+  expect((await ui.find({ type: 'Text', text: 'הקשר' }))?.text).toBe('הקשר')
   await ui.unmount()
 })
 

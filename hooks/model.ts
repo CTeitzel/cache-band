@@ -96,11 +96,11 @@ export function autoCompactLabel(autoCompact: AutoCompact | null, pack: Language
     return null
   }
 
+  const name = pack.words.autoCompact
+
   if (!autoCompact.isEnabled) {
-    return `(Auto-Compact ${pack.words.off})`
+    return `(${name} ${pack.words.off})`
   }
 
-  return autoCompact.percent === null
-    ? `(Auto-Compact ${pack.words.on})`
-    : `(Auto-Compact ${pack.percent(autoCompact.percent / 100)})`
+  return autoCompact.percent === null ? `(${name} ${pack.words.on})` : `(${name} ${pack.percent(autoCompact.percent / 100)})`
 }

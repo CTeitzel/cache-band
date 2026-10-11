@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, PluginOptions, Register, SessionContextUsage } from 'claude-code'
 
 import type { AutoCompact, Preferences } from '../types'
-import { packForSurface, resolveLanguage } from './i18n'
+import { bidiFor, packForSurface, resolveLanguage } from './i18n'
 import {
   BAR_CELLS,
   HOUR_MS,
@@ -225,6 +225,7 @@ export const register: Register = (on, options) => {
     const { words } = pack
     // Right-to-left mirrors the row, each group in it and the bar, which then fills from the right.
     const direction = pack.isRtl ? 'row-reverse' : 'row'
+    const bidi = bidiFor(pack, e.surface)
     const reading = await read($, cache)
     const fill = await read($, context)
     const autoCompactText = autoCompactLabel(await read($, autoCompact), pack)
@@ -241,10 +242,10 @@ export const register: Register = (on, options) => {
       <Box key="row" flexDirection={direction} flexWrap="wrap" alignItems="center" columnGap={1}>
         <Box flexDirection={direction} columnGap={1}>
           <Text color={view.tone}>●</Text>
-          <Text dimColor>{words.cache}</Text>
+          <Text dimColor>{bidi(words.cache)}</Text>
           <Box key="countdown">
             <Text color={view.tone} bold>
-              {cacheLabel(view, pack)}
+              {bidi(cacheLabel(view, pack))}
             </Text>
           </Box>
         </Box>
@@ -254,28 +255,28 @@ export const register: Register = (on, options) => {
         </Box>
         <Box flexDirection={direction} columnGap={1}>
           <Box key="hit">
-            <Text bold>{reading === null ? '–' : pack.percent(reading.hit)}</Text>
+            <Text bold>{reading === null ? '–' : bidi(pack.percent(reading.hit))}</Text>
           </Box>
-          <Text dimColor>{words.hit}</Text>
+          <Text dimColor>{bidi(words.hit)}</Text>
           <Text dimColor>·</Text>
         </Box>
         <Box flexDirection={direction} columnGap={1}>
           <Box key="weather">
             <Text>{weather(fill)}</Text>
           </Box>
-          <Text dimColor>{words.context}</Text>
+          <Text dimColor>{bidi(words.context)}</Text>
           <Box key="context">
-            <Text bold>{fill === null ? '–' : pack.percent(fill / 100)}</Text>
+            <Text bold>{fill === null ? '–' : bidi(pack.percent(fill / 100))}</Text>
           </Box>
           {autoCompactText !== null && (
             <Box key="autoCompact">
-              <Text dimColor>{autoCompactText}</Text>
+              <Text dimColor>{bidi(autoCompactText)}</Text>
             </Box>
           )}
         </Box>
         <Button
           key="compact"
-          label={compacting ? words.compacting : 'Compact'}
+          label={bidi(compacting ? words.compacting : words.compact)}
           dimColor={isBusy}
           onPress={press => void runCompact($, e.props.isWorking, press.surface)}
         />

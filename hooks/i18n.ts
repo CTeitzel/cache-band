@@ -1,4 +1,4 @@
-/** The band's words. `Compact` and `Auto-Compact` stay as they are: they name the `/compact` command. */
+/** The band's words, every one translated — `Compact` and `Auto-Compact` too (author's decision, 2026-10-11). */
 export type Strings = {
   cache: string
   cold: string
@@ -6,6 +6,10 @@ export type Strings = {
   context: string
   on: string
   off: string
+  /** The button's label. */
+  compact: string
+  /** Auto-compaction's name in the parenthesis. */
+  autoCompact: string
   compacting: string
   busy: string
   failed: (reason: string) => string
@@ -21,147 +25,171 @@ export type Language = (typeof LANGUAGES)[number]
 export const STRINGS: Record<Language, Strings> = {
   en: {
     cache: 'cache', cold: 'cold', hit: 'hit', context: 'Context', on: 'on', off: 'off',
+    compact: 'Compact', autoCompact: 'Auto-Compact',
     compacting: 'Compacting…',
     busy: 'Compact is possible once the running turn has finished.',
     failed: r => `Compact failed: ${r}`,
   },
   de: {
     cache: 'cache', cold: 'kalt', hit: 'hit', context: 'Kontext', on: 'an', off: 'aus',
+    compact: 'Kompaktieren', autoCompact: 'Auto-Kompaktierung',
     compacting: 'Kompaktiere…',
-    busy: 'Compact geht erst, wenn der laufende Turn fertig ist.',
-    failed: r => `Compact fehlgeschlagen: ${r}`,
+    busy: 'Kompaktieren geht erst, wenn der laufende Turn fertig ist.',
+    failed: r => `Kompaktieren fehlgeschlagen: ${r}`,
   },
   fr: {
     cache: 'cache', cold: 'froid', hit: 'succès', context: 'Contexte', on: 'activé', off: 'désactivé',
+    compact: 'Compacter', autoCompact: 'Compactage auto',
     compacting: 'Compactage…',
-    busy: 'Compact est possible une fois le tour en cours terminé.',
-    failed: r => `Échec de Compact : ${r}`,
+    busy: 'Le compactage est possible une fois le tour en cours terminé.',
+    failed: r => `Échec du compactage : ${r}`,
   },
   es: {
     cache: 'caché', cold: 'frío', hit: 'acierto', context: 'Contexto', on: 'activado', off: 'desactivado',
+    compact: 'Compactar', autoCompact: 'Compactación automática',
     compacting: 'Compactando…',
-    busy: 'Compact solo es posible cuando termine el turno en curso.',
-    failed: r => `Compact falló: ${r}`,
+    busy: 'La compactación solo es posible cuando termine el turno en curso.',
+    failed: r => `La compactación falló: ${r}`,
   },
   it: {
     cache: 'cache', cold: 'freddo', hit: 'hit', context: 'Contesto', on: 'attivo', off: 'disattivo',
+    compact: 'Compatta', autoCompact: 'Compattazione automatica',
     compacting: 'Compattazione…',
-    busy: 'Compact è possibile solo al termine del turno in corso.',
-    failed: r => `Compact non riuscito: ${r}`,
+    busy: 'La compattazione è possibile solo al termine del turno in corso.',
+    failed: r => `Compattazione non riuscita: ${r}`,
   },
   pt: {
     cache: 'cache', cold: 'frio', hit: 'acerto', context: 'Contexto', on: 'ativado', off: 'desativado',
+    compact: 'Compactar', autoCompact: 'Compactação automática',
     compacting: 'Compactando…',
-    busy: 'Compact só é possível quando o turno atual terminar.',
-    failed: r => `Compact falhou: ${r}`,
+    busy: 'A compactação só é possível quando o turno atual terminar.',
+    failed: r => `A compactação falhou: ${r}`,
   },
   nl: {
     cache: 'cache', cold: 'koud', hit: 'hit', context: 'Context', on: 'aan', off: 'uit',
+    compact: 'Compacteren', autoCompact: 'Auto-compacteren',
     compacting: 'Compacteren…',
-    busy: 'Compact kan pas als de lopende beurt klaar is.',
-    failed: r => `Compact mislukt: ${r}`,
+    busy: 'Compacteren kan pas als de lopende beurt klaar is.',
+    failed: r => `Compacteren mislukt: ${r}`,
   },
   pl: {
     cache: 'cache', cold: 'zimny', hit: 'trafień', context: 'Kontekst', on: 'włączony', off: 'wyłączony',
+    compact: 'Kompaktuj', autoCompact: 'Autokompaktowanie',
     compacting: 'Kompaktowanie…',
-    busy: 'Compact będzie możliwy po zakończeniu bieżącej tury.',
-    failed: r => `Compact nie powiódł się: ${r}`,
+    busy: 'Kompaktowanie będzie możliwe po zakończeniu bieżącej tury.',
+    failed: r => `Kompaktowanie nie powiodło się: ${r}`,
   },
   sv: {
     cache: 'cache', cold: 'kall', hit: 'träff', context: 'Kontext', on: 'på', off: 'av',
+    compact: 'Komprimera', autoCompact: 'Autokomprimering',
     compacting: 'Komprimerar…',
-    busy: 'Compact går först när den pågående turen är klar.',
-    failed: r => `Compact misslyckades: ${r}`,
+    busy: 'Komprimering går först när den pågående turen är klar.',
+    failed: r => `Komprimeringen misslyckades: ${r}`,
   },
   cs: {
     cache: 'cache', cold: 'studená', hit: 'zásah', context: 'Kontext', on: 'zapnuto', off: 'vypnuto',
+    compact: 'Kompaktovat', autoCompact: 'Automatické kompaktování',
     compacting: 'Kompaktuji…',
-    busy: 'Compact je možný až po dokončení probíhajícího kola.',
-    failed: r => `Compact selhal: ${r}`,
+    busy: 'Kompaktování je možné až po dokončení probíhajícího kola.',
+    failed: r => `Kompaktování selhalo: ${r}`,
   },
   ru: {
     cache: 'кэш', cold: 'остыл', hit: 'попаданий', context: 'Контекст', on: 'вкл.', off: 'выкл.',
+    compact: 'Сжать', autoCompact: 'Автосжатие',
     compacting: 'Сжатие…',
-    busy: 'Compact возможен только после завершения текущего хода.',
-    failed: r => `Compact не удался: ${r}`,
+    busy: 'Сжатие возможно только после завершения текущего хода.',
+    failed: r => `Сжатие не удалось: ${r}`,
   },
   uk: {
     cache: 'кеш', cold: 'охолов', hit: 'влучань', context: 'Контекст', on: 'увімк.', off: 'вимк.',
+    compact: 'Стиснути', autoCompact: 'Автостиснення',
     compacting: 'Стиснення…',
-    busy: 'Compact можливий лише після завершення поточного ходу.',
-    failed: r => `Compact не вдався: ${r}`,
+    busy: 'Стиснення можливе лише після завершення поточного ходу.',
+    failed: r => `Стиснення не вдалося: ${r}`,
   },
   el: {
     cache: 'cache', cold: 'κρύα', hit: 'ευστοχία', context: 'Πλαίσιο', on: 'ενεργό', off: 'ανενεργό',
+    compact: 'Συμπύκνωση', autoCompact: 'Αυτόματη συμπύκνωση',
     compacting: 'Συμπύκνωση…',
-    busy: 'Το Compact είναι δυνατό μόλις ολοκληρωθεί ο τρέχων γύρος.',
-    failed: r => `Το Compact απέτυχε: ${r}`,
+    busy: 'Η συμπύκνωση είναι δυνατή μόλις ολοκληρωθεί ο τρέχων γύρος.',
+    failed: r => `Η συμπύκνωση απέτυχε: ${r}`,
   },
   tr: {
     cache: 'önbellek', cold: 'soğuk', hit: 'isabet', context: 'Bağlam', on: 'açık', off: 'kapalı',
+    compact: 'Sıkıştır', autoCompact: 'Otomatik sıkıştırma',
     compacting: 'Sıkıştırılıyor…',
-    busy: 'Compact, devam eden tur bittikten sonra yapılabilir.',
-    failed: r => `Compact başarısız: ${r}`,
+    busy: 'Sıkıştırma, devam eden tur bittikten sonra yapılabilir.',
+    failed: r => `Sıkıştırma başarısız: ${r}`,
   },
   ar: {
     cache: 'الكاش', cold: 'بارد', hit: 'إصابة', context: 'السياق', on: 'مفعّل', off: 'معطّل',
+    compact: 'ضغط', autoCompact: 'ضغط تلقائي',
     compacting: 'جارٍ الضغط…',
-    busy: 'يمكن تنفيذ Compact بعد انتهاء الدور الجاري.',
-    failed: r => `فشل Compact: ${r}`,
+    busy: 'يمكن الضغط بعد انتهاء الدور الجاري.',
+    failed: r => `فشل الضغط: ${r}`,
   },
   he: {
     cache: 'מטמון', cold: 'קר', hit: 'פגיעות', context: 'הקשר', on: 'פעיל', off: 'כבוי',
+    compact: 'דחיסה', autoCompact: 'דחיסה אוטומטית',
     compacting: 'מבצע דחיסה…',
-    busy: 'Compact אפשרי רק לאחר שהתור הנוכחי מסתיים.',
-    failed: r => `Compact נכשל: ${r}`,
+    busy: 'דחיסה אפשרית רק לאחר שהתור הנוכחי מסתיים.',
+    failed: r => `הדחיסה נכשלה: ${r}`,
   },
   hi: {
     cache: 'कैश', cold: 'ठंडा', hit: 'हिट', context: 'संदर्भ', on: 'चालू', off: 'बंद',
+    compact: 'कॉम्पैक्ट करें', autoCompact: 'ऑटो-कॉम्पैक्ट',
     compacting: 'कॉम्पैक्ट हो रहा है…',
-    busy: 'Compact चल रहे टर्न के पूरा होने के बाद ही संभव है।',
-    failed: r => `Compact विफल: ${r}`,
+    busy: 'कॉम्पैक्ट चल रहे टर्न के पूरा होने के बाद ही संभव है।',
+    failed: r => `कॉम्पैक्ट विफल: ${r}`,
   },
   th: {
     cache: 'แคช', cold: 'หมดอายุ', hit: 'ฮิต', context: 'บริบท', on: 'เปิด', off: 'ปิด',
+    compact: 'บีบอัด', autoCompact: 'บีบอัดอัตโนมัติ',
     compacting: 'กำลังบีบอัด…',
-    busy: 'Compact ได้เมื่อเทิร์นที่กำลังทำงานเสร็จแล้ว',
-    failed: r => `Compact ล้มเหลว: ${r}`,
+    busy: 'บีบอัดได้เมื่อเทิร์นที่กำลังทำงานเสร็จแล้ว',
+    failed: r => `บีบอัดล้มเหลว: ${r}`,
   },
   id: {
     cache: 'cache', cold: 'dingin', hit: 'hit', context: 'Konteks', on: 'aktif', off: 'nonaktif',
+    compact: 'Padatkan', autoCompact: 'Pemadatan otomatis',
     compacting: 'Memadatkan…',
-    busy: 'Compact baru bisa setelah giliran yang berjalan selesai.',
-    failed: r => `Compact gagal: ${r}`,
+    busy: 'Pemadatan baru bisa setelah giliran yang berjalan selesai.',
+    failed: r => `Pemadatan gagal: ${r}`,
   },
   vi: {
     cache: 'cache', cold: 'nguội', hit: 'trúng', context: 'Ngữ cảnh', on: 'bật', off: 'tắt',
+    compact: 'Nén', autoCompact: 'Tự động nén',
     compacting: 'Đang nén…',
-    busy: 'Chỉ có thể Compact sau khi lượt hiện tại kết thúc.',
-    failed: r => `Compact thất bại: ${r}`,
+    busy: 'Chỉ có thể nén sau khi lượt hiện tại kết thúc.',
+    failed: r => `Nén thất bại: ${r}`,
   },
   ja: {
     cache: 'キャッシュ', cold: '期限切れ', hit: 'ヒット', context: 'コンテキスト', on: 'オン', off: 'オフ',
+    compact: '圧縮', autoCompact: '自動圧縮',
     compacting: '圧縮中…',
-    busy: 'Compact は実行中のターンが終わってから実行できます。',
-    failed: r => `Compact に失敗しました: ${r}`,
+    busy: '圧縮は実行中のターンが終わってから実行できます。',
+    failed: r => `圧縮に失敗しました: ${r}`,
   },
   ko: {
     cache: '캐시', cold: '만료', hit: '적중', context: '컨텍스트', on: '켜짐', off: '꺼짐',
+    compact: '압축', autoCompact: '자동 압축',
     compacting: '압축 중…',
-    busy: 'Compact는 진행 중인 턴이 끝난 후에 가능합니다.',
-    failed: r => `Compact 실패: ${r}`,
+    busy: '압축은 진행 중인 턴이 끝난 후에 가능합니다.',
+    failed: r => `압축 실패: ${r}`,
   },
   zh: {
     cache: '缓存', cold: '已过期', hit: '命中', context: '上下文', on: '开', off: '关',
+    compact: '压缩', autoCompact: '自动压缩',
     compacting: '正在压缩…',
-    busy: '当前轮次结束后才能 Compact。',
-    failed: r => `Compact 失败：${r}`,
+    busy: '当前轮次结束后才能压缩。',
+    failed: r => `压缩失败：${r}`,
   },
   'zh-TW': {
     cache: '快取', cold: '已過期', hit: '命中', context: '上下文', on: '開', off: '關',
+    compact: '壓縮', autoCompact: '自動壓縮',
     compacting: '正在壓縮…',
-    busy: '目前輪次結束後才能 Compact。',
-    failed: r => `Compact 失敗：${r}`,
+    busy: '目前輪次結束後才能壓縮。',
+    failed: r => `壓縮失敗：${r}`,
   },
 }
 
@@ -289,6 +317,16 @@ export function packForSurface(language: string, surface: string | undefined, rt
   const pack = packFor(language)
 
   return pack.isRtl && surface === 'terminal' && !rtlInTerminal ? packFor('en') : pack
+}
+
+/**
+ * The surface lays each `Text` out left-to-right, so a right-to-left piece that mixes in numbers,
+ * parentheses or Latin (`(ضغط تلقائي ٩٧٪)`, `60 דק׳`) reads in the wrong order. On web surfaces a
+ * right-to-left isolate (RLI … PDI) gives the piece its own direction; terminals get no control
+ * characters, they may draw them.
+ */
+export function bidiFor(pack: LanguagePack, surface: string | undefined): (text: string) => string {
+  return pack.isRtl && surface !== 'terminal' ? text => `\u2067${text}\u2069` : text => text
 }
 
 /** The option wins; `auto` follows Claude Code's `language` setting, then the locale, then English. */

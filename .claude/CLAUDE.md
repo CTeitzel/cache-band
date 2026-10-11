@@ -64,7 +64,9 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
   (`isWorking` from the drawing) `runCompact` only toasts that it has to wait; a failure is a toast
   and a `$.ui.log` line in the transcript. While it runs the label reads `Compacting…` (not
   covered by a test: the kit does not redraw mid-press).
-- **`Compact` / `Auto-Compact` are not translated** — they name the `/compact` command.
+- **Every word is translated, `Compact` and `Auto-Compact` too** (`words.compact`,
+  `words.autoCompact`) — the author's decision on 2026-10-11, overturning an earlier rule that kept
+  them English as the command's name.
 - **Numbers go through the language pack** (`packFor` / `packForSurface` in `i18n.ts`): minutes
   as the locale's narrow unit (`42m`, `42 Min.`, `٤٢ د`), percentages with the locale's sign and
   digits. Locales as in the dashboard (`ar-EG` → Arabic-Indic digits). Never format `${n}m` or
@@ -74,7 +76,11 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
   a `Text`: a space inside the text lands on the wrong side once a group is reversed.
 - **Arabic and Hebrew fall back to English in the terminal** unless `rtlInTerminal` is on
   (`packForSurface`); toasts and log lines after a press follow the surface the press came from.
-  No bidi control characters: each piece is its own element, and web surfaces lay out the script.
+- **Right-to-left pieces are isolated on web surfaces** (`bidiFor`: RLI U+2067 … PDI U+2069).
+  The surface lays each `Text` out left-to-right; without the isolate `(ضغط تلقائي ٩٧٪)` reads
+  from the closing parenthesis and `60 דק׳` puts the number last (seen in the Desktop app,
+  2026-10-11). Never in the terminal (it may draw them). In source write the escapes
+  `\u2067` / `\u2069`, never the raw invisible characters.
 - **The language list follows the author's Grok Depot dashboard** (its 22 languages, incl. `zh-TW`
   and its Chinese rule Hant/TW/HK/MO → `zh-TW`) plus `sv` and `cs`: 24. A new language goes into
   `LANGUAGES`, `STRINGS`, `NAMES` and the `language` option list in `plugin.json`.
@@ -85,7 +91,7 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
 
 - `claude plugin validate .` and `claude plugin validate .claude-plugin/marketplace.json` —
   CI fails on any warning (`⚠`), not only on errors.
-- `claude plugin test .` — `tests/*.test.tsx` against the engine (22 tests).
+- `claude plugin test .` — `tests/*.test.tsx` against the engine (23 tests).
 - Type-check (local only — CI has no declarations, they are Anthropic's and not committed):
   `tsc` is not installed; VS Code ships TypeScript at
   `%LOCALAPPDATA%\Programs\Microsoft VS Code\resources\app\extensions\node_modules\typescript\lib\typescript.js`.
