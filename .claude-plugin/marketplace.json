@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cache-band",
+  "description": "cache-band: a band above the Claude Code prompt with the prompt-cache countdown, cache fill, hit rate, context fill and a Compact button.",
+  "owner": {
+    "name": "Dr. Christian Teitzel",
+    "url": "https://github.com/CTeitzel"
+  },
+  "plugins": [
+    {
+      "name": "cache-band",
+      "source": "./",
+      "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 20 languages.",
+      "category": "productivity",
+      "tags": ["mods", "prompt-cache", "context", "compact", "status"]
+    }
+  ]
+}

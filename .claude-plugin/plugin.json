@@ -1,0 +1,30 @@
+{
+  "name": "cache-band",
+  "version": "0.2.0",
+  "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 20 languages.",
+  "author": {
+    "name": "Dr. Christian Teitzel",
+    "url": "https://github.com/CTeitzel"
+  },
+  "homepage": "https://github.com/CTeitzel/cache-band",
+  "repository": "https://github.com/CTeitzel/cache-band",
+  "license": "MIT",
+  "keywords": ["mods", "prompt-cache", "context", "compact", "status"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "language": {
+      "type": "string",
+      "title": "Language",
+      "description": "Language of the band. auto follows Claude Code's language setting, then the system locale, then English.",
+      "default": "auto",
+      "options": ["auto", "en", "de", "fr", "es", "it", "pt", "nl", "pl", "sv", "cs", "ru", "uk", "tr", "ar", "hi", "id", "vi", "ja", "ko", "zh"]
+    },
+    "cacheTtl": {
+      "type": "string",
+      "title": "Cache lifetime",
+      "description": "Prompt-cache lifetime for the countdown. auto reads CLAUDE_CODE_PROMPT_CACHE_TTL, then promptCacheTtl, else 1h (set 5m for an API key without promptCacheTtl).",
+      "default": "auto",
+      "options": ["auto", "1h", "5m"]
+    }
+  }
+}
