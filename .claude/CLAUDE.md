@@ -140,7 +140,7 @@ others should receive. Add a dated entry to `docs/dev-log/`.
 
 ## Releasing
 
-Releases are GitHub releases with a `vX.Y.Z` tag; the first was `v0.3.0` (2026-10-11).
+Releases are GitHub releases with a `vX.Y.Z` tag: `v0.3.0` first, `v0.6.2` latest (both 2026-10-11).
 
 1. Bump `version` in `.claude-plugin/plugin.json` (semver: new options or languages → minor,
    fixes → patch). Marketplace installs follow `main`, and the version string is what makes
