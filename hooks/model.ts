@@ -83,8 +83,9 @@ export function filledCells(stored: number, isEmpty: boolean, cells: number = BA
 
 /**
  * What one piece of the row takes, in the band's cells. The terminal is exact; the Desktop app sets
- * a proportional font in a monospace cell metric, so its figures are estimates from a screenshot
- * (2026-10-11), on the generous side: a short bar beats a row that wraps.
+ * a proportional font in a monospace cell metric, so its figures are estimates, on the generous
+ * side: a short bar beats a row that wraps. Checked 2026-10-11 at bodyColumns 94 (German row):
+ * everything but the bar estimated at 80.3 cells, measured about 80; a square measured 1.44 cells.
  */
 export type Widths = { char: number; square: number; emoji: number; buttonChrome: number; gap: number }
 
