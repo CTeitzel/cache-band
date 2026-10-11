@@ -1,6 +1,6 @@
 {
   "name": "cache-band",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 24 languages.",
   "author": {
     "name": "Dr. Christian Teitzel",
@@ -25,6 +25,12 @@
       "description": "Prompt-cache lifetime for the countdown. auto reads CLAUDE_CODE_PROMPT_CACHE_TTL, then promptCacheTtl, else 1h (set 5m for an API key without promptCacheTtl).",
       "default": "auto",
       "options": ["auto", "1h", "5m"]
+    },
+    "rtlInTerminal": {
+      "type": "boolean",
+      "title": "Right-to-left in the terminal",
+      "description": "Draw Arabic and Hebrew right-to-left in the terminal too. Off: the terminal band is English for them, because many terminals show right-to-left script reversed. The Desktop app always lays them out right-to-left.",
+      "default": false
     }
   }
 }

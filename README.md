@@ -23,6 +23,10 @@ came from it, how full the context is, and puts `/compact` one click away.
 | `(Auto-Compact 97%)` | Where auto-compaction triggers, as a share of the window | `(Auto-Compact off)` when disabled |
 | `[Compact]` | Runs `/compact` as if typed; its progress and result show in the transcript | Reads `Compacting…` until done; dimmed while a turn runs, a press then says it has to wait; a failure is named in the transcript |
 
+Numbers follow the language's locale: `42m` and `93%` in English, `42 Min.` and `93 %` in German,
+Arabic-Indic digits (`٤٢ د`, `٩٣٪`) in Arabic. Arabic and Hebrew mirror the row in the Desktop app:
+it reads from the right, the bar fills from the right, the button sits on the left.
+
 Other mods may draw into the same band; their rows appear beneath this one.
 
 ## Install
@@ -57,6 +61,7 @@ Both are rows in `/config`, or set them in `~/.claude/settings.json`:
 |---|---|---|
 | `language` | `auto`, `en`, `de`, `fr`, `es`, `it`, `pt`, `nl`, `pl`, `sv`, `cs`, `el`, `tr`, `ru`, `uk`, `ar`, `he`, `hi`, `th`, `id`, `vi`, `ja`, `ko`, `zh` (simplified), `zh-TW` (traditional) | `auto`: Claude Code's `language` setting, then the system locale (`zh-Hant`, `zh-TW`, `zh-HK`, `zh-MO` → traditional), then English |
 | `cacheTtl` | `auto`, `1h`, `5m` | `auto`: `CLAUDE_CODE_PROMPT_CACHE_TTL`, then `promptCacheTtl`, else `1h` |
+| `rtlInTerminal` | `true`, `false` | `false`: in the terminal, Arabic and Hebrew show in English, because many terminals draw right-to-left script reversed. Turn it on if yours handles it; the Desktop app always mirrors. |
 
 The cache lifetime is one hour on a Claude subscription and five minutes on an API key, Bedrock,
 Vertex or Foundry unless `promptCacheTtl` says otherwise. Nothing the mod can read tells the two
@@ -76,9 +81,9 @@ apart, so `auto` assumes one hour: **on an API key without `promptCacheTtl`, set
 |---|---|
 | `hooks/register.tsx` | the hooks: readings, countdown restarts, the Compact button, the band |
 | `hooks/model.ts` | pure maths: countdown, lifetime, bar, weather, auto-compact label |
-| `hooks/i18n.ts` | the 24 languages and how `auto` picks one |
+| `hooks/i18n.ts` | the 24 languages, their number locales, right-to-left, and how `auto` picks one |
 | `types/index.d.ts` | the `$.state` contract |
-| `tests/band.test.tsx` | 17 tests against the engine (`claude plugin test`) |
+| `tests/band.test.tsx` | 22 tests against the engine (`claude plugin test`) |
 | `.claude/CLAUDE.md` | notes for AI sessions working on the mod: invariants, where each figure comes from |
 | `docs/dev-log/` | development log (German) |
 

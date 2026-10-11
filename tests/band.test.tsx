@@ -2,7 +2,7 @@ import type { On } from 'claude-code'
 import { describe, expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 
-import { LANGUAGES, STRINGS, languageOf, resolveLanguage, wordsFor } from '../hooks/i18n'
+import { LANGUAGES, STRINGS, languageOf, packFor, packForSurface, resolveLanguage, wordsFor } from '../hooks/i18n'
 import { FIVE_MINUTES_MS, HOUR_MS, cacheLabel, cacheView, filledCells, resolveTtl, weather } from '../hooks/model'
 
 const START = 1_000_000
@@ -96,7 +96,7 @@ async function measured($: Engine): Promise<void> {
 describe('countdown', () => {
   const reading = { at: START, hit: 0.93, stored: 0.99 }
   const label = (now: number, isWorking: boolean, ttlMs: number) =>
-    cacheLabel(cacheView(reading, now, isWorking, ttlMs), STRINGS.en)
+    cacheLabel(cacheView(reading, now, isWorking, ttlMs), packFor('en'))
 
   test('one hour: green 31–60, yellow 11–30, red 0–10 minutes', () => {
     expect(cacheView(reading, START, false, HOUR_MS)).toEqual({ tone: 'green', state: 'warm', minutes: 60 })
@@ -108,7 +108,7 @@ describe('countdown', () => {
     expect(cacheView(reading, START + 60 * MINUTE, false, HOUR_MS)).toEqual({ tone: 'red', state: 'cold', minutes: 0 })
     expect(label(START + 60 * MINUTE, false, HOUR_MS)).toBe('cold')
     expect(label(START + 90 * MINUTE, true, HOUR_MS)).toBe('60m')
-    expect(cacheLabel(cacheView(null, START, false, HOUR_MS), STRINGS.en)).toBe('–')
+    expect(cacheLabel(cacheView(null, START, false, HOUR_MS), packFor('en'))).toBe('–')
   })
 
   test('five minutes: the same shares of the lifetime', () => {
@@ -183,6 +183,25 @@ describe('languages', () => {
     expect(resolveLanguage('auto', '中文', undefined)).toBe('zh')
     expect(resolveLanguage('zh-TW', undefined, 'zh_CN.UTF-8')).toBe('zh-TW')
     expect(STRINGS['zh-TW'].cache).toBe('快取')
+  })
+
+  test("numbers in each language's locale: minutes, percent, Arabic-Indic digits", () => {
+    expect(packFor('en').minutes(60)).toBe('60m')
+    expect(packFor('de').minutes(60)).toBe('60 Min.')
+    expect(packFor('ar').minutes(60)).toBe('٦٠ د')
+    expect(packFor('he').minutes(42)).toBe('42 דק׳')
+    expect(packFor('en').percent(0.93)).toBe('93%')
+    expect(packFor('de').percent(0.93)).toMatch(/^93\s%$/)
+    expect(packFor('ar').percent(0.93)).toMatch(/^٩٣٪/)
+    expect(packFor('xx').language).toBe('en')
+  })
+
+  test('right-to-left: Arabic and Hebrew; in the terminal only when asked', () => {
+    expect(LANGUAGES.filter(language => packFor(language).isRtl)).toEqual(['ar', 'he'])
+    expect(packForSurface('ar', 'desktop', false).language).toBe('ar')
+    expect(packForSurface('he', 'terminal', false).language).toBe('en')
+    expect(packForSurface('ar', 'terminal', true).language).toBe('ar')
+    expect(packForSurface('de', 'terminal', false).language).toBe('de')
   })
 })
 
@@ -265,8 +284,8 @@ test('band follows a response, its expiry and a compaction', async ($, on) => {
     expect((await ui.find({ key: 'bar' }))?.text).toBe('■'.repeat(20))
     expect((await ui.find({ key: 'weather' }))?.text).toContain('☀️')
     expect((await ui.find({ key: 'context' }))?.text).toBe('9%')
-    expect((await ui.find({ key: 'autoCompact' }))?.text).toBe(' (Auto-Compact 97%)')
-    expect(await ui.find({ type: 'Text', text: 'Context ' })).toBeDefined()
+    expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Compact 97%)')
+    expect(await ui.find({ type: 'Text', text: 'Context' })).toBeDefined()
     expect((await ui.find({ key: 'compact' }))?.props.label).toBe('Compact')
     await ui.unmount()
   }
@@ -323,12 +342,18 @@ test('the language option draws the band in German', { options: { language: 'de'
 
   await start($)
   await respond($)
+
+  const fresh = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
+  expect((await fresh.find({ key: 'countdown' }))?.text).toBe('60 Min.')
+  expect((await fresh.find({ key: 'row' }))?.props.flexDirection).toBe('row')
+  await fresh.unmount()
+
   await clock.advance(60 * MINUTE)
 
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await ui.find({ key: 'countdown' }))?.text).toBe('kalt')
-  expect(await ui.find({ type: 'Text', text: 'Kontext ' })).toBeDefined()
-  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe(' (Auto-Compact aus)')
+  expect(await ui.find({ type: 'Text', text: 'Kontext' })).toBeDefined()
+  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Compact aus)')
   await ui.unmount()
 })
 
@@ -359,6 +384,53 @@ test('a five-minute cache from the settings counts down from 5m', async ($, on) 
   expect((await later.find({ key: 'countdown' }))?.text).toBe('2m')
   expect((await later.find({ type: 'Text', text: '2m' }))?.props.color).toBe('yellow')
   await later.unmount()
+})
+
+test('Arabic mirrors the band on the desktop, with Arabic-Indic digits', { options: { language: 'ar' } }, async ($, on) => {
+  mock.clock(on, { now: START })
+  answerEngine(on)
+
+  await start($)
+  await respond($)
+
+  const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
+  expect((await ui.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
+  expect((await ui.find({ key: 'bar' }))?.props.flexDirection).toBe('row-reverse')
+  expect((await ui.find({ key: 'countdown' }))?.text).toBe('٦٠ د')
+  expect((await ui.find({ key: 'hit' }))?.text).toMatch(/^٩٣٪/)
+  expect(await ui.find({ type: 'Text', text: 'السياق' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('Hebrew in the terminal falls back to English', { options: { language: 'he' } }, async ($, on) => {
+  mock.clock(on, { now: START })
+  answerEngine(on)
+
+  await start($)
+  await respond($)
+
+  const terminal = await $.ui.mount({ plugin: 'cache-band', surface: 'terminal', ...BAND })
+  expect((await terminal.find({ key: 'row' }))?.props.flexDirection).toBe('row')
+  expect((await terminal.find({ key: 'countdown' }))?.text).toBe('60m')
+  expect(await terminal.find({ type: 'Text', text: 'Context' })).toBeDefined()
+  await terminal.unmount()
+
+  const desktop = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
+  expect((await desktop.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
+  expect((await desktop.find({ key: 'countdown' }))?.text).toBe('60 דק׳')
+  await desktop.unmount()
+})
+
+test('rtlInTerminal draws Hebrew right-to-left in the terminal too', { options: { language: 'he', rtlInTerminal: true } }, async ($, on) => {
+  mock.clock(on, { now: START })
+  answerEngine(on)
+
+  await start($)
+
+  const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'terminal', ...BAND })
+  expect((await ui.find({ key: 'row' }))?.props.flexDirection).toBe('row-reverse')
+  expect(await ui.find({ type: 'Text', text: 'הקשר' })).toBeDefined()
+  await ui.unmount()
 })
 
 // Stands in for cache-tax's band row: a plugin beneath this one that draws into the same band.
@@ -452,6 +524,6 @@ test('turning auto-compact off in /config shows at once', async ($, on) => {
   })
 
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'terminal', ...BAND })
-  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe(' (Auto-Compact off)')
+  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Compact off)')
   await ui.unmount()
 })

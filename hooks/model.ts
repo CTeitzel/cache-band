@@ -1,7 +1,7 @@
 import type { ModelUsage } from 'claude-code'
 
 import type { AutoCompact, CacheReading } from '../types'
-import type { Strings } from './i18n'
+import type { LanguagePack } from './i18n'
 
 export const HOUR_MS = 60 * 60 * 1000
 export const FIVE_MINUTES_MS = 5 * 60 * 1000
@@ -63,12 +63,12 @@ export function cacheView(reading: CacheReading | null, now: number, isWorking: 
   return { tone, state: 'warm', minutes }
 }
 
-export function cacheLabel(view: CacheView, words: Strings): string {
+export function cacheLabel(view: CacheView, pack: LanguagePack): string {
   if (view.state === 'none') {
     return '–'
   }
 
-  return view.state === 'cold' ? words.cold : `${view.minutes}m`
+  return view.state === 'cold' ? pack.words.cold : pack.minutes(view.minutes)
 }
 
 /** How many of the bar's cells are filled. */
@@ -78,10 +78,6 @@ export function filledCells(stored: number, isEmpty: boolean): number {
   }
 
   return Math.round(Math.min(1, Math.max(0, stored)) * BAR_CELLS)
-}
-
-export function percent(fraction: number): string {
-  return `${Math.round(fraction * 100)}%`
 }
 
 /** null (no reading yet) counts as an empty window. */
@@ -95,14 +91,16 @@ export function weather(contextPercent: number | null): string {
   return filled >= 40 ? '⛅' : '☀️'
 }
 
-export function autoCompactLabel(autoCompact: AutoCompact | null, words: Strings): string | null {
+export function autoCompactLabel(autoCompact: AutoCompact | null, pack: LanguagePack): string | null {
   if (autoCompact === null) {
     return null
   }
 
   if (!autoCompact.isEnabled) {
-    return `(Auto-Compact ${words.off})`
+    return `(Auto-Compact ${pack.words.off})`
   }
 
-  return autoCompact.percent === null ? `(Auto-Compact ${words.on})` : `(Auto-Compact ${autoCompact.percent}%)`
+  return autoCompact.percent === null
+    ? `(Auto-Compact ${pack.words.on})`
+    : `(Auto-Compact ${pack.percent(autoCompact.percent / 100)})`
 }

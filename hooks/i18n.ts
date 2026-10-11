@@ -235,6 +235,62 @@ export function wordsFor(language: string): Strings {
   return isLanguage(language) ? STRINGS[language] : STRINGS.en
 }
 
+/** Each language's number locale, as the Grok Depot dashboard has them (`ar-EG`: Arabic-Indic digits). */
+const LOCALES: Record<Language, string> = {
+  en: 'en-US', de: 'de-DE', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', pt: 'pt-PT', nl: 'nl-NL',
+  pl: 'pl-PL', sv: 'sv-SE', cs: 'cs-CZ', el: 'el-GR', tr: 'tr-TR', ru: 'ru-RU', uk: 'uk-UA',
+  ar: 'ar-EG', he: 'he-IL', hi: 'hi-IN', th: 'th-TH', id: 'id-ID', vi: 'vi-VN', ja: 'ja-JP',
+  ko: 'ko-KR', zh: 'zh-CN', 'zh-TW': 'zh-TW',
+}
+
+const RIGHT_TO_LEFT: readonly Language[] = ['ar', 'he']
+
+/** One language's words, reading direction and number formats. */
+export type LanguagePack = {
+  language: Language
+  words: Strings
+  isRtl: boolean
+  /** `42m`, `42 Min.`, `٤٢ د`: the locale's narrow minute unit. */
+  minutes: (count: number) => string
+  /** `93%`, `93 %`, `٩٣٪`: a share from 0 to 1, whole percent. */
+  percent: (fraction: number) => string
+}
+
+const packs = new Map<Language, LanguagePack>()
+
+export function packFor(language: string): LanguagePack {
+  const known: Language = isLanguage(language) ? language : 'en'
+  const cached = packs.get(known)
+
+  if (cached !== undefined) {
+    return cached
+  }
+
+  const locale = LOCALES[known]
+  const minutes = new Intl.NumberFormat(locale, { style: 'unit', unit: 'minute', unitDisplay: 'narrow' })
+  const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 })
+  const pack: LanguagePack = {
+    language: known,
+    words: STRINGS[known],
+    isRtl: RIGHT_TO_LEFT.includes(known),
+    minutes: count => minutes.format(count),
+    percent: fraction => percent.format(fraction),
+  }
+  packs.set(known, pack)
+
+  return pack
+}
+
+/**
+ * Many terminals draw right-to-left script reversed: there Arabic and Hebrew fall back to English,
+ * unless the person says their terminal can (`rtlInTerminal`). Web surfaces lay it out themselves.
+ */
+export function packForSurface(language: string, surface: string | undefined, rtlInTerminal: boolean): LanguagePack {
+  const pack = packFor(language)
+
+  return pack.isRtl && surface === 'terminal' && !rtlInTerminal ? packFor('en') : pack
+}
+
 /** The option wins; `auto` follows Claude Code's `language` setting, then the locale, then English. */
 export function resolveLanguage(option: string, setting: string | undefined, locale: string | undefined): Language {
   if (isLanguage(option)) {

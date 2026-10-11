@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, PluginOptions, Register, SessionContextUsage } from 'claude-code'
 
 import type { AutoCompact, Preferences } from '../types'
-import { resolveLanguage, wordsFor } from './i18n'
+import { packForSurface, resolveLanguage } from './i18n'
 import {
   BAR_CELLS,
   HOUR_MS,
@@ -10,13 +10,16 @@ import {
   cacheLabel,
   cacheView,
   filledCells,
-  percent,
   readingFrom,
   resolveTtl,
   weather,
 } from './model'
 
-const preferences = atom({ plugin: 'cache-band', key: 'preferences' } as const, { language: 'en', ttlMs: HOUR_MS })
+const preferences = atom({ plugin: 'cache-band', key: 'preferences' } as const, {
+  language: 'en',
+  ttlMs: HOUR_MS,
+  rtlInTerminal: false,
+})
 const cache = atom({ plugin: 'cache-band', key: 'cache' } as const, null)
 const context = atom({ plugin: 'cache-band', key: 'context' } as const, null)
 const autoCompact = atom({ plugin: 'cache-band', key: 'autoCompact' } as const, null)
@@ -39,6 +42,7 @@ async function readPreferences($: EngineInterface, options: PluginOptions): Prom
       await $.env.get('CLAUDE_CODE_PROMPT_CACHE_TTL'),
       text(settings.promptCacheTtl),
     ),
+    rtlInTerminal: options.rtlInTerminal === true,
   }
   await update($, preferences, () => value)
 }
@@ -80,8 +84,9 @@ async function forgetWindow($: EngineInterface): Promise<void> {
  * progress and result in the transcript. `$.session.compact()` from the press left no compaction
  * behind in the Desktop app (2026-10-11).
  */
-async function runCompact($: EngineInterface, isWorking: boolean): Promise<void> {
-  const words = wordsFor((await read($, preferences)).language)
+async function runCompact($: EngineInterface, isWorking: boolean, surface: string): Promise<void> {
+  const { language, rtlInTerminal } = await read($, preferences)
+  const { words } = packForSurface(language, surface, rtlInTerminal)
 
   if (isWorking) {
     $.ui.toast(words.busy)
@@ -215,11 +220,14 @@ export const register: Register = (on, options) => {
     }
 
     const { Box, Text, Button } = $.ui.resolve(e)
-    const { language, ttlMs } = await read($, preferences)
-    const words = wordsFor(language)
+    const { language, ttlMs, rtlInTerminal } = await read($, preferences)
+    const pack = packForSurface(language, e.surface, rtlInTerminal)
+    const { words } = pack
+    // Right-to-left mirrors the row, each group in it and the bar, which then fills from the right.
+    const direction = pack.isRtl ? 'row-reverse' : 'row'
     const reading = await read($, cache)
     const fill = await read($, context)
-    const autoCompactText = autoCompactLabel(await read($, autoCompact), words)
+    const autoCompactText = autoCompactLabel(await read($, autoCompact), pack)
     const compacting = await read($, isCompacting)
     const isBusy = e.props.isWorking || compacting
     const now = await $.clock.now()
@@ -230,37 +238,38 @@ export const register: Register = (on, options) => {
     const rest = await next(e)
 
     const band = (
-      <Box flexDirection="row" flexWrap="wrap" alignItems="center" columnGap={1}>
-        <Box flexDirection="row">
-          <Text color={view.tone}>● </Text>
-          <Text dimColor>{words.cache} </Text>
+      <Box key="row" flexDirection={direction} flexWrap="wrap" alignItems="center" columnGap={1}>
+        <Box flexDirection={direction} columnGap={1}>
+          <Text color={view.tone}>●</Text>
+          <Text dimColor>{words.cache}</Text>
           <Box key="countdown">
             <Text color={view.tone} bold>
-              {cacheLabel(view, words)}
+              {cacheLabel(view, pack)}
             </Text>
           </Box>
         </Box>
-        <Box key="bar" flexDirection="row">
+        <Box key="bar" flexDirection={direction}>
           {filled > 0 && <Text color={view.tone}>{'■'.repeat(filled)}</Text>}
           {filled < BAR_CELLS && <Text color="gray">{'□'.repeat(BAR_CELLS - filled)}</Text>}
         </Box>
-        <Box flexDirection="row">
+        <Box flexDirection={direction} columnGap={1}>
           <Box key="hit">
-            <Text bold>{reading === null ? '–' : percent(reading.hit)}</Text>
+            <Text bold>{reading === null ? '–' : pack.percent(reading.hit)}</Text>
           </Box>
-          <Text dimColor> {words.hit} ·</Text>
+          <Text dimColor>{words.hit}</Text>
+          <Text dimColor>·</Text>
         </Box>
-        <Box flexDirection="row">
+        <Box flexDirection={direction} columnGap={1}>
           <Box key="weather">
-            <Text>{weather(fill)} </Text>
+            <Text>{weather(fill)}</Text>
           </Box>
-          <Text dimColor>{words.context} </Text>
+          <Text dimColor>{words.context}</Text>
           <Box key="context">
-            <Text bold>{fill === null ? '–' : `${fill}%`}</Text>
+            <Text bold>{fill === null ? '–' : pack.percent(fill / 100)}</Text>
           </Box>
           {autoCompactText !== null && (
             <Box key="autoCompact">
-              <Text dimColor>{` ${autoCompactText}`}</Text>
+              <Text dimColor>{autoCompactText}</Text>
             </Box>
           )}
         </Box>
@@ -268,7 +277,7 @@ export const register: Register = (on, options) => {
           key="compact"
           label={compacting ? words.compacting : 'Compact'}
           dimColor={isBusy}
-          onPress={() => void runCompact($, e.props.isWorking)}
+          onPress={press => void runCompact($, e.props.isWorking, press.surface)}
         />
       </Box>
     )

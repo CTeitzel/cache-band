@@ -37,7 +37,7 @@ Do not also install it from the marketplace there: it would load twice.
 | hit rate, bar | the same `turn.step` usage (`readingFrom` in `model.ts`) |
 | context % | `session.measure` (pushed after each main turn) and `$.session.usage()` at `session.start` |
 | auto-compact % | `$.session.usage({ breakdown: 'summary' })` at `session.start`, `classic.PostModelSwitch`, `classic.ConfigChange`, `config.set {key: 'autoCompact'}` — not per turn (it counts the whole window locally) |
-| language, cache lifetime | `state.preferences`, from the options over `$.settings.read()` (`language`, `promptCacheTtl`) and `$.env.get` (`CLAUDE_CODE_PROMPT_CACHE_TTL`, `LC_ALL`, `LANG`), at `session.start` and `classic.ConfigChange`; an option change reloads the module |
+| language, cache lifetime, `rtlInTerminal` | `state.preferences`, from the options over `$.settings.read()` (`language`, `promptCacheTtl`) and `$.env.get` (`CLAUDE_CODE_PROMPT_CACHE_TTL`, `LC_ALL`, `LANG`), at `session.start` and `classic.ConfigChange`; an option change reloads the module |
 | reset to `–` | `session.compact` (not `precompute`), `/clear` (`session.end` reason `clear`), and `runCompact`, which re-reads `$.session.usage()` after the command: no `percent` means compacted |
 
 Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red below), which is
@@ -65,6 +65,16 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
   and a `$.ui.log` line in the transcript. While it runs the label reads `Compacting…` (not
   covered by a test: the kit does not redraw mid-press).
 - **`Compact` / `Auto-Compact` are not translated** — they name the `/compact` command.
+- **Numbers go through the language pack** (`packFor` / `packForSurface` in `i18n.ts`): minutes
+  as the locale's narrow unit (`42m`, `42 Min.`, `٤٢ د`), percentages with the locale's sign and
+  digits. Locales as in the dashboard (`ar-EG` → Arabic-Indic digits). Never format `${n}m` or
+  `${n}%` by hand.
+- **Right-to-left is `flexDirection: 'row-reverse'`** on the row (`key="row"`), on each group and
+  on the bar — the API has no `dir`. Spacing is `columnGap`, never a trailing or leading space in
+  a `Text`: a space inside the text lands on the wrong side once a group is reversed.
+- **Arabic and Hebrew fall back to English in the terminal** unless `rtlInTerminal` is on
+  (`packForSurface`); toasts and log lines after a press follow the surface the press came from.
+  No bidi control characters: each piece is its own element, and web surfaces lay out the script.
 - **The language list follows the author's Grok Depot dashboard** (its 22 languages, incl. `zh-TW`
   and its Chinese rule Hant/TW/HK/MO → `zh-TW`) plus `sv` and `cs`: 24. A new language goes into
   `LANGUAGES`, `STRINGS`, `NAMES` and the `language` option list in `plugin.json`.
@@ -75,7 +85,7 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
 
 - `claude plugin validate .` and `claude plugin validate .claude-plugin/marketplace.json` —
   CI fails on any warning (`⚠`), not only on errors.
-- `claude plugin test .` — `tests/*.test.tsx` against the engine (17 tests).
+- `claude plugin test .` — `tests/*.test.tsx` against the engine (22 tests).
 - Type-check (local only — CI has no declarations, they are Anthropic's and not committed):
   `tsc` is not installed; VS Code ships TypeScript at
   `%LOCALAPPDATA%\Programs\Microsoft VS Code\resources\app\extensions\node_modules\typescript\lib\typescript.js`.
@@ -92,7 +102,9 @@ Test stubs every engine test needs beneath the plugin (`answerEngine`): `mock.cl
 `mock.env`, `settings.read`, an `AbovePrompt` `ui.render` answer (because our hook calls
 `next`), `turn.step`, `session.start/end/measure`; `answerUsage` where the context figures
 matter (its `percent` getter returning `undefined` stands for "just compacted"); a
-`command.run` hook on `{ command: 'compact' }` stands for the engine's `/compact`. Options for the plugin under test: `test(name, { options: { language: 'de' } }, body)`.
+`command.run` hook on `{ command: 'compact' }` stands for the engine's `/compact`. Options for the plugin under test: `test(name, { options: { language: 'de' } }, body)`. The
+kit checks the tree (`flexDirection`, texts), not the paint: right-to-left needs a look in the
+Desktop app.
 
 ## Deploying a change
 

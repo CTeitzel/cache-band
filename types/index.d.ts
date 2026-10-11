@@ -21,6 +21,8 @@ export type Preferences = {
   language: string
   /** The prompt cache's lifetime: one hour or five minutes. */
   ttlMs: number
+  /** Draw Arabic and Hebrew right-to-left in the terminal too, instead of English there. */
+  rtlInTerminal: boolean
 }
 
 declare module 'claude-code' {
