@@ -93,6 +93,22 @@ sessions do not watch this folder (no `CLAUDE_CODE_PLUGIN_DIR_WATCH`): the chang
 next new session, after its first message. Bump `version` in `plugin.json` for a release
 others should receive. Add a dated entry to `docs/dev-log/`.
 
+## Releasing
+
+Releases are GitHub releases with a `vX.Y.Z` tag; the first was `v0.3.0` (2026-10-11).
+
+1. Bump `version` in `.claude-plugin/plugin.json` (semver: new options or languages → minor,
+   fixes → patch). Marketplace installs follow `main`, and the version string is what makes
+   `claude plugin update` hand them the new code — without a bump they keep the old one.
+2. Update README, this file and `docs/dev-log/` for what changed.
+3. Commit, push, and wait for a green CI run on that commit (no warnings).
+4. Create the release on exactly that commit, English notes (what the band shows, what is new,
+   install, checks), marked latest:
+   `gh release create vX.Y.Z --target <sha> --title "cache-band X.Y.Z" --notes-file <notes.md> --latest`
+5. Check it: `gh release view vX.Y.Z` (not a draft, not a prerelease) and
+   `gh api repos/CTeitzel/cache-band/releases/latest`.
+6. Add the release to the dev-log.
+
 ## Neighbours
 
 cache-tax (`cache-tax@claude-code-mods`, third party) is installed alongside: keepwarm pings
