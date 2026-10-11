@@ -351,7 +351,7 @@ test('the language option draws the band in German', { options: { language: 'de'
 
   const fresh = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await fresh.find({ key: 'countdown' }))?.text).toBe('60 Min.')
-  expect((await fresh.find({ key: 'compact' }))?.props.label).toBe('Kompaktieren')
+  expect((await fresh.find({ key: 'compact' }))?.props.label).toBe('Komprimieren')
   expect((await fresh.find({ key: 'row' }))?.props.flexDirection).toBe('row')
   await fresh.unmount()
 
@@ -360,7 +360,7 @@ test('the language option draws the band in German', { options: { language: 'de'
   const ui = await $.ui.mount({ plugin: 'cache-band', surface: 'desktop', ...BAND })
   expect((await ui.find({ key: 'countdown' }))?.text).toBe('kalt')
   expect(await ui.find({ type: 'Text', text: 'Kontext' })).toBeDefined()
-  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Kompaktierung aus)')
+  expect((await ui.find({ key: 'autoCompact' }))?.text).toBe('(Auto-Komprimierung aus)')
   await ui.unmount()
 })
 

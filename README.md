@@ -23,8 +23,8 @@ came from it, how full the context is, and puts `/compact` one click away.
 | `(Auto-Compact 97%)` | Where auto-compaction triggers, as a share of the window | `(Auto-Compact off)` when disabled |
 | `[Compact]` | Runs `/compact` as if typed; its progress and result show in the transcript | Reads `Compacting…` until done; dimmed while a turn runs, a press then says it has to wait; a failure is named in the transcript |
 
-Every word is translated, `Compact` and `Auto-Compact` included (German: `Kompaktieren`,
-`Auto-Kompaktierung`). Numbers follow the language's locale: `42m` and `93%` in English,
+Every word is translated, `Compact` and `Auto-Compact` included (German: `Komprimieren`,
+`Auto-Komprimierung`). Numbers follow the language's locale: `42m` and `93%` in English,
 `42 Min.` and `93 %` in German, Arabic-Indic digits (`٤٢ د`, `٩٣٪`) in Arabic. Arabic and Hebrew
 mirror the row in the Desktop app: it reads from the right, the bar fills from the right, the
 button sits on the left, and each piece is set right-to-left, numbers and parentheses included.

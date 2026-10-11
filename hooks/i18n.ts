@@ -32,10 +32,10 @@ export const STRINGS: Record<Language, Strings> = {
   },
   de: {
     cache: 'cache', cold: 'kalt', hit: 'hit', context: 'Kontext', on: 'an', off: 'aus',
-    compact: 'Kompaktieren', autoCompact: 'Auto-Kompaktierung',
-    compacting: 'Kompaktiere…',
-    busy: 'Kompaktieren geht erst, wenn der laufende Turn fertig ist.',
-    failed: r => `Kompaktieren fehlgeschlagen: ${r}`,
+    compact: 'Komprimieren', autoCompact: 'Auto-Komprimierung',
+    compacting: 'Komprimiere…',
+    busy: 'Komprimieren geht erst, wenn der laufende Turn fertig ist.',
+    failed: r => `Komprimieren fehlgeschlagen: ${r}`,
   },
   fr: {
     cache: 'cache', cold: 'froid', hit: 'succès', context: 'Contexte', on: 'activé', off: 'désactivé',
