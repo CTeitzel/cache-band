@@ -73,7 +73,10 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
   `types/index.d.ts`, `tests/*` with `.claude-plugin/types/tsconfig.json`'s options.
 
 CI (`.github/workflows/ci.yml`) installs `@anthropic-ai/claude-code@2.1.289` from npm and runs
-validate and test on every push.
+validate and test on every push, with `actions/checkout@v7` and `actions/setup-node@v7`
+(Node 24; v4 warned about the deprecated Node 20). The runner stays `ubuntu-latest` — the
+author's decision (2026-10-11): do not pin it; GitHub moves the alias to Ubuntu 26.04 between
+2026-10-19 and 2026-11-19, and the job barely depends on the OS.
 
 Test stubs every engine test needs beneath the plugin (`answerEngine`): `mock.clock`,
 `mock.env`, `settings.read`, an `AbovePrompt` `ui.render` answer (because our hook calls
