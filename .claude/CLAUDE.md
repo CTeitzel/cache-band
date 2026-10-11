@@ -9,7 +9,7 @@ plugin root, and CI fails on warnings.)
 
 A Claude Code mod (plugin of function hooks, Claude Code 2.1.289) that draws one row in the
 `AbovePrompt` band: cache countdown, cache fill bar, hit rate, context weather and fill,
-auto-compact threshold and a Compact button, in 20 languages. Public repo:
+auto-compact threshold and a Compact button, in 24 languages. Public repo:
 https://github.com/CTeitzel/cache-band (MIT); the repo root is both the plugin and a
 one-plugin marketplace (`.claude-plugin/marketplace.json`, `source: "./"`).
 
@@ -21,7 +21,7 @@ Do not also install it from the marketplace there: it would load twice.
 ## Layout
 
 - `hooks/register.tsx` — all hooks. Pure logic lives in `hooks/model.ts` (countdown, lifetime,
-  bar, weather, labels) and `hooks/i18n.ts` (the 20 languages, `auto` resolution); keep it
+  bar, weather, labels) and `hooks/i18n.ts` (the 24 languages, `auto` resolution); keep it
   there so the unit tests need no engine.
 - `types/index.d.ts` — the `$.state` contract (`PluginState['cache-band']`). Every key the
   module reads or writes must be declared here; `claude plugin validate` checks it.
@@ -58,6 +58,9 @@ Colour thresholds are shares of the lifetime (green > ½, yellow > ⅙, red belo
 - **No `disabled` on `Button`.** "Greyed out" is `dimColor`; the press still runs and
   `runCompact` explains why it failed (`isWorking` from the drawing picks the message).
 - **`Compact` / `Auto-Compact` are not translated** — they name the `/compact` command.
+- **The language list follows the author's Grok Depot dashboard** (its 22 languages, incl. `zh-TW`
+  and its Chinese rule Hant/TW/HK/MO → `zh-TW`) plus `sv` and `cs`: 24. A new language goes into
+  `LANGUAGES`, `STRINGS`, `NAMES` and the `language` option list in `plugin.json`.
 
 ## Checks
 
@@ -65,7 +68,7 @@ The CLI is not on PATH locally: `%APPDATA%\Claude\claude-code\<version>\<hash>\c
 
 - `claude plugin validate .` and `claude plugin validate .claude-plugin/marketplace.json` —
   CI fails on any warning (`⚠`), not only on errors.
-- `claude plugin test .` — `tests/*.test.tsx` against the engine (15 tests).
+- `claude plugin test .` — `tests/*.test.tsx` against the engine (16 tests).
 - Type-check (local only — CI has no declarations, they are Anthropic's and not committed):
   `tsc` is not installed; VS Code ships TypeScript at
   `%LOCALAPPDATA%\Programs\Microsoft VS Code\resources\app\extensions\node_modules\typescript\lib\typescript.js`.

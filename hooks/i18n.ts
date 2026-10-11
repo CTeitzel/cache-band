@@ -13,8 +13,8 @@ export type Strings = {
 }
 
 export const LANGUAGES = [
-  'en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'sv', 'cs',
-  'ru', 'uk', 'tr', 'ar', 'hi', 'id', 'vi', 'ja', 'ko', 'zh',
+  'en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'sv', 'cs', 'el', 'tr',
+  'ru', 'uk', 'ar', 'he', 'hi', 'th', 'id', 'vi', 'ja', 'ko', 'zh', 'zh-TW',
 ] as const
 
 export type Language = (typeof LANGUAGES)[number]
@@ -104,6 +104,13 @@ export const STRINGS: Record<Language, Strings> = {
     busy: 'Compact можливий лише після завершення поточного ходу.',
     failed: r => `Compact не вдався: ${r}`,
   },
+  el: {
+    cache: 'cache', cold: 'κρύα', hit: 'ευστοχία', context: 'Πλαίσιο', on: 'ενεργό', off: 'ανενεργό',
+    compacting: 'Συμπύκνωση…',
+    skipped: r => `Το Compact παραλείφθηκε: ${r}`,
+    busy: 'Το Compact είναι δυνατό μόλις ολοκληρωθεί ο τρέχων γύρος.',
+    failed: r => `Το Compact απέτυχε: ${r}`,
+  },
   tr: {
     cache: 'önbellek', cold: 'soğuk', hit: 'isabet', context: 'Bağlam', on: 'açık', off: 'kapalı',
     compacting: 'Sıkıştırılıyor…',
@@ -118,12 +125,26 @@ export const STRINGS: Record<Language, Strings> = {
     busy: 'يمكن تنفيذ Compact بعد انتهاء الدور الجاري.',
     failed: r => `فشل Compact: ${r}`,
   },
+  he: {
+    cache: 'מטמון', cold: 'קר', hit: 'פגיעות', context: 'הקשר', on: 'פעיל', off: 'כבוי',
+    compacting: 'מבצע דחיסה…',
+    skipped: r => `Compact דולג: ${r}`,
+    busy: 'Compact אפשרי רק לאחר שהתור הנוכחי מסתיים.',
+    failed: r => `Compact נכשל: ${r}`,
+  },
   hi: {
     cache: 'कैश', cold: 'ठंडा', hit: 'हिट', context: 'संदर्भ', on: 'चालू', off: 'बंद',
     compacting: 'कॉम्पैक्ट हो रहा है…',
     skipped: r => `Compact छोड़ा गया: ${r}`,
     busy: 'Compact चल रहे टर्न के पूरा होने के बाद ही संभव है।',
     failed: r => `Compact विफल: ${r}`,
+  },
+  th: {
+    cache: 'แคช', cold: 'หมดอายุ', hit: 'ฮิต', context: 'บริบท', on: 'เปิด', off: 'ปิด',
+    compacting: 'กำลังบีบอัด…',
+    skipped: r => `ข้าม Compact: ${r}`,
+    busy: 'Compact ได้เมื่อเทิร์นที่กำลังทำงานเสร็จแล้ว',
+    failed: r => `Compact ล้มเหลว: ${r}`,
   },
   id: {
     cache: 'cache', cold: 'dingin', hit: 'hit', context: 'Konteks', on: 'aktif', off: 'nonaktif',
@@ -160,6 +181,13 @@ export const STRINGS: Record<Language, Strings> = {
     busy: '当前轮次结束后才能 Compact。',
     failed: r => `Compact 失败：${r}`,
   },
+  'zh-TW': {
+    cache: '快取', cold: '已過期', hit: '命中', context: '上下文', on: '開', off: '關',
+    compacting: '正在壓縮…',
+    skipped: r => `已略過 Compact：${r}`,
+    busy: '目前輪次結束後才能 Compact。',
+    failed: r => `Compact 失敗：${r}`,
+  },
 }
 
 /** Claude Code's `language` setting is free text ("german", "日本語"): the names each language goes by. */
@@ -174,23 +202,44 @@ const NAMES: Record<Language, readonly string[]> = {
   pl: ['polish', 'polski'],
   sv: ['swedish', 'svenska'],
   cs: ['czech', 'čeština', 'cestina'],
+  el: ['greek', 'ελληνικά'],
+  tr: ['turkish', 'türkçe', 'turkce'],
   ru: ['russian', 'русский'],
   uk: ['ukrainian', 'українська'],
-  tr: ['turkish', 'türkçe', 'turkce'],
   ar: ['arabic', 'العربية'],
+  he: ['hebrew', 'עברית'],
   hi: ['hindi', 'हिन्दी', 'हिंदी'],
+  th: ['thai', 'ไทย'],
   id: ['indonesian', 'bahasa indonesia'],
   vi: ['vietnamese', 'tiếng việt', 'tieng viet'],
   ja: ['japanese', '日本語'],
   ko: ['korean', '한국어'],
-  zh: ['chinese', '中文', '简体中文', '繁體中文'],
+  zh: ['chinese', 'simplified chinese', '中文', '简体中文'],
+  'zh-TW': ['traditional chinese', '繁體中文', '繁体中文', '正體中文'],
 }
 
 function isLanguage(value: string): value is Language {
   return (LANGUAGES as readonly string[]).includes(value)
 }
 
-/** A setting's or a locale's spelling (`German`, `de-DE`, `de_DE.UTF-8`) to a language, if it names one. */
+/** A locale's leading code to a language; `iw` is Hebrew's old code. */
+function codeOf(locale: string): Language | null {
+  const parts = locale.split(/[-_.@]/)
+  const primary = parts[0] ?? ''
+
+  // Chinese as the Grok Depot dashboard reads it: Hant, TW, HK and MO are traditional.
+  if (primary === 'zh') {
+    return parts.some(part => ['hant', 'tw', 'hk', 'mo'].includes(part)) ? 'zh-TW' : 'zh'
+  }
+
+  if (primary === 'iw') {
+    return 'he'
+  }
+
+  return isLanguage(primary) ? primary : null
+}
+
+/** A setting's or a locale's spelling (`German`, `de-DE`, `de_DE.UTF-8`, `zh-Hant-HK`) to a language. */
 export function languageOf(text: string | undefined): Language | null {
   const spelled = text?.trim().toLowerCase()
 
@@ -204,9 +253,7 @@ export function languageOf(text: string | undefined): Language | null {
     }
   }
 
-  const code = spelled.split(/[-_.@]/)[0] ?? ''
-
-  return isLanguage(code) ? code : null
+  return codeOf(spelled)
 }
 
 export function wordsFor(language: string): Strings {

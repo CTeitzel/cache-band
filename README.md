@@ -55,7 +55,7 @@ Both are rows in `/config`, or set them in `~/.claude/settings.json`:
 
 | Option | Values | Default |
 |---|---|---|
-| `language` | `auto`, `en`, `de`, `fr`, `es`, `it`, `pt`, `nl`, `pl`, `sv`, `cs`, `ru`, `uk`, `tr`, `ar`, `hi`, `id`, `vi`, `ja`, `ko`, `zh` | `auto`: Claude Code's `language` setting, then the system locale, then English |
+| `language` | `auto`, `en`, `de`, `fr`, `es`, `it`, `pt`, `nl`, `pl`, `sv`, `cs`, `el`, `tr`, `ru`, `uk`, `ar`, `he`, `hi`, `th`, `id`, `vi`, `ja`, `ko`, `zh` (simplified), `zh-TW` (traditional) | `auto`: Claude Code's `language` setting, then the system locale (`zh-Hant`, `zh-TW`, `zh-HK`, `zh-MO` → traditional), then English |
 | `cacheTtl` | `auto`, `1h`, `5m` | `auto`: `CLAUDE_CODE_PROMPT_CACHE_TTL`, then `promptCacheTtl`, else `1h` |
 
 The cache lifetime is one hour on a Claude subscription and five minutes on an API key, Bedrock,
@@ -76,9 +76,9 @@ apart, so `auto` assumes one hour: **on an API key without `promptCacheTtl`, set
 |---|---|
 | `hooks/register.tsx` | the hooks: readings, countdown restarts, the Compact button, the band |
 | `hooks/model.ts` | pure maths: countdown, lifetime, bar, weather, auto-compact label |
-| `hooks/i18n.ts` | the 20 languages and how `auto` picks one |
+| `hooks/i18n.ts` | the 24 languages and how `auto` picks one |
 | `types/index.d.ts` | the `$.state` contract |
-| `tests/band.test.tsx` | 15 tests against the engine (`claude plugin test`) |
+| `tests/band.test.tsx` | 16 tests against the engine (`claude plugin test`) |
 | `.claude/CLAUDE.md` | notes for AI sessions working on the mod: invariants, where each figure comes from |
 | `docs/dev-log/` | development log (German) |
 

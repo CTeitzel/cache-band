@@ -10,7 +10,7 @@
     {
       "name": "cache-band",
       "source": "./",
-      "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 20 languages.",
+      "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 24 languages.",
       "category": "productivity",
       "tags": ["mods", "prompt-cache", "context", "compact", "status"]
     }

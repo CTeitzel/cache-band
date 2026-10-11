@@ -1,7 +1,7 @@
 {
   "name": "cache-band",
-  "version": "0.2.0",
-  "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 20 languages.",
+  "version": "0.3.0",
+  "description": "A band above the prompt: prompt-cache countdown, cache fill, hit rate, context fill, auto-compact threshold and a Compact button. 24 languages.",
   "author": {
     "name": "Dr. Christian Teitzel",
     "url": "https://github.com/CTeitzel"
@@ -17,7 +17,7 @@
       "title": "Language",
       "description": "Language of the band. auto follows Claude Code's language setting, then the system locale, then English.",
       "default": "auto",
-      "options": ["auto", "en", "de", "fr", "es", "it", "pt", "nl", "pl", "sv", "cs", "ru", "uk", "tr", "ar", "hi", "id", "vi", "ja", "ko", "zh"]
+      "options": ["auto", "en", "de", "fr", "es", "it", "pt", "nl", "pl", "sv", "cs", "el", "tr", "ru", "uk", "ar", "he", "hi", "th", "id", "vi", "ja", "ko", "zh", "zh-TW"]
     },
     "cacheTtl": {
       "type": "string",

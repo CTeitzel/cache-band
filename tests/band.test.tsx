@@ -138,8 +138,8 @@ describe('countdown', () => {
 })
 
 describe('languages', () => {
-  test('twenty languages, every word in each', () => {
-    expect(LANGUAGES.length).toBe(20)
+  test('twenty-four languages, every word in each', () => {
+    expect(LANGUAGES.length).toBe(24)
 
     for (const language of LANGUAGES) {
       const words = STRINGS[language]
@@ -158,8 +158,25 @@ describe('languages', () => {
     expect(resolveLanguage('auto', '日本語', undefined)).toBe('ja')
     expect(resolveLanguage('auto', undefined, 'pt_BR.UTF-8')).toBe('pt')
     expect(resolveLanguage('auto', 'klingon', 'C')).toBe('en')
-    expect(languageOf('zh-TW')).toBe('zh')
+    expect(languageOf('he_IL.UTF-8')).toBe('he')
+    expect(languageOf('iw')).toBe('he')
+    expect(languageOf('Greek')).toBe('el')
+    expect(languageOf('thai')).toBe('th')
     expect(wordsFor('xx')).toBe(STRINGS.en)
+  })
+
+  test('Chinese as the Grok Depot dashboard reads it: Hant, TW, HK, MO are traditional', () => {
+    expect(languageOf('zh-TW')).toBe('zh-TW')
+    expect(languageOf('zh-Hant-HK')).toBe('zh-TW')
+    expect(languageOf('zh_HK.UTF-8')).toBe('zh-TW')
+    expect(languageOf('zh-MO')).toBe('zh-TW')
+    expect(languageOf('zh-CN')).toBe('zh')
+    expect(languageOf('zh-Hans-SG')).toBe('zh')
+    expect(languageOf('zh')).toBe('zh')
+    expect(resolveLanguage('auto', 'Traditional Chinese', undefined)).toBe('zh-TW')
+    expect(resolveLanguage('auto', '中文', undefined)).toBe('zh')
+    expect(resolveLanguage('zh-TW', undefined, 'zh_CN.UTF-8')).toBe('zh-TW')
+    expect(STRINGS['zh-TW'].cache).toBe('快取')
   })
 })
 
