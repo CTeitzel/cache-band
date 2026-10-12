@@ -171,8 +171,10 @@ dev-log entry came after the tag). A published tag is never moved.
    install, checks), marked latest:
    `gh release create vX.Y.Z --target <sha> --title "cache-band X.Y.Z" --notes-file <notes.md> --latest`
 6. Check it without committing: `gh release view vX.Y.Z` (not a draft, not a prerelease),
-   `gh api repos/CTeitzel/claude-code-cache-band/releases/latest`, and `git rev-list --count vX.Y.Z..main`
-   is `0`. If something has to be fixed afterwards, it goes into the next release — the tag stays.
+   `gh api repos/CTeitzel/claude-code-cache-band/releases/latest`, and
+   `git rev-list --count vX.Y.Z..main` is `0`. If something has to be fixed afterwards, it goes
+   into the next release — the tag stays. Only the notes may be corrected later
+   (`gh release edit vX.Y.Z --notes-file <notes.md>`), as v0.6.2's were after the repo rename.
 
 ## Neighbours
 
