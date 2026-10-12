@@ -39,9 +39,12 @@ exact; in the Desktop app, which sets a proportional font, it is estimated with 
 Needs Claude Code 2.1.287 or later (mods are on by default).
 
 ```sh
-claude plugin marketplace add CTeitzel/cache-band
+claude plugin marketplace add CTeitzel/claude-code-cache-band
 claude plugin install cache-band@cache-band
 ```
+
+The repository is `claude-code-cache-band`; inside Claude Code the plugin and its marketplace are
+both `cache-band`, hence `cache-band@cache-band`.
 
 Restart Claude Code or run `/reload-plugins`. The band appears once the session has started —
 in the Desktop app, after the first message is sent.

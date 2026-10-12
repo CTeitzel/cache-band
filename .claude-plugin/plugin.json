@@ -6,8 +6,8 @@
     "name": "Dr. Christian Teitzel",
     "url": "https://github.com/CTeitzel"
   },
-  "homepage": "https://github.com/CTeitzel/cache-band",
-  "repository": "https://github.com/CTeitzel/cache-band",
+  "homepage": "https://github.com/CTeitzel/claude-code-cache-band",
+  "repository": "https://github.com/CTeitzel/claude-code-cache-band",
   "license": "MIT",
   "keywords": ["mods", "prompt-cache", "context", "compact", "status"],
   "types": "./types/index.d.ts",

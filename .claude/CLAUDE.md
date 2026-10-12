@@ -10,8 +10,16 @@ plugin root, and CI fails on warnings.)
 A Claude Code mod (plugin of function hooks, Claude Code 2.1.289) that draws one row in the
 `AbovePrompt` band: cache countdown, cache fill bar, hit rate, context weather and fill,
 auto-compact threshold and a Compact button, in 24 languages. Public repo:
-https://github.com/CTeitzel/cache-band (MIT); the repo root is both the plugin and a
+https://github.com/CTeitzel/claude-code-cache-band (MIT); the repo root is both the plugin and a
 one-plugin marketplace (`.claude-plugin/marketplace.json`, `source: "./"`).
+
+Two names on purpose: the **repo** is `claude-code-cache-band` so people find it on GitHub
+(renamed from `cache-band` on 2026-10-12; GitHub redirects the old URL, git included). The
+**plugin** stays `cache-band`, and so do its marketplace, the state atoms, the
+`pluginConfigs` id, `/cache-band-language` and `CACHE_BAND_DEBUG`: installs and settings depend
+on them, and inside Claude Code "claude" would say nothing. The repo's description matches the
+one in `plugin.json`; its topics (`claude-code`, `claude-code-plugin`, `claude-code-mod`,
+`prompt-caching`, …) are what GitHub search ranks on, so keep them.
 
 The author's own machine loads this working copy (`~/.claude/mods/cache-band`) through
 `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`, plugin id
@@ -151,8 +159,10 @@ dev-log entry came after the tag). A published tag is never moved.
    `claude plugin update` hand them the new code — without a bump they keep the old one.
 2. Update README, this file and `docs/dev-log/` for what changed — **including the release
    itself**: a dev-log section for `vX.Y.Z` with its URL
-   (`https://github.com/CTeitzel/cache-band/releases/tag/vX.Y.Z`, known before it exists), what the
-   notes say, and "latest release" in this file. Write the release notes now too.
+   (`https://github.com/CTeitzel/claude-code-cache-band/releases/tag/vX.Y.Z`, known before it
+   exists), what the notes say, and "latest release" in this file. Write the release notes now
+   too. If the plugin's description changed, set the repo's to match
+   (`gh repo edit --description`): it said "20 languages" long after there were 24.
 3. Run the final check before tagging (all committed and pushed, CI green without warnings, md
    files current) and record it in the same dev-log section.
 4. Commit, push, and wait for a green CI run on that commit (no warnings). This is the release
@@ -161,7 +171,7 @@ dev-log entry came after the tag). A published tag is never moved.
    install, checks), marked latest:
    `gh release create vX.Y.Z --target <sha> --title "cache-band X.Y.Z" --notes-file <notes.md> --latest`
 6. Check it without committing: `gh release view vX.Y.Z` (not a draft, not a prerelease),
-   `gh api repos/CTeitzel/cache-band/releases/latest`, and `git rev-list --count vX.Y.Z..main`
+   `gh api repos/CTeitzel/claude-code-cache-band/releases/latest`, and `git rev-list --count vX.Y.Z..main`
    is `0`. If something has to be fixed afterwards, it goes into the next release — the tag stays.
 
 ## Neighbours
